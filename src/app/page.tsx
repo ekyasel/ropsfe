@@ -1,66 +1,101 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh',
+      padding: '2rem',
+      backgroundColor: 'var(--background)'
+    }}>
+      <section className="animate-fade-in" style={{ textAlign: 'center', maxWidth: '850px' }}>
+        <div style={{ 
+          display: 'inline-block', 
+          backgroundColor: 'var(--accent-soft)', 
+          color: 'var(--accent)', 
+          padding: '8px 16px', 
+          borderRadius: '20px', 
+          fontSize: '0.9rem', 
+          fontWeight: 600,
+          marginBottom: '1.5rem'
+        }}>
+          Sistem Manajemen Ruang Operasi - RSUD Sidoarjo Barat
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <h1 style={{ 
+          fontSize: '4rem', 
+          marginBottom: '1.5rem',
+          color: '#0f172a',
+          fontWeight: 800,
+          lineHeight: 1.1
+        }}>
+          Ruang Operasi
+        </h1>
+        <p style={{ 
+          fontSize: '1.25rem', 
+          color: '#64748b', 
+          marginBottom: '3rem',
+          lineHeight: 1.6
+        }}>
+          Orkestrator digital komprehensif untuk manajemen ruang bedah RSUD Sidoarjo Barat. 
+          Pantau personel, lacak kemajuan bedah, dan optimalkan efisiensi ruang operasi 
+          dengan presisi.
+        </p>
+        
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', 
+          gap: '1.5rem',
+          width: '100%'
+        }}>
+          <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Personnel</h3>
+            <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
+              Manage surgeon rosters, nursing staff, and auxiliary medical personnel.
+            </p>
+          </div>
+          <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Operations</h3>
+            <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
+              Real-time scheduling and status monitoring of active surgical rooms.
+            </p>
+          </div>
+          <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Analytics</h3>
+            <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
+              Detailed reporting on room turnover times and institutional efficiency.
+            </p>
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div style={{ marginTop: '4rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <Link href="/login" className="button-primary" style={{ fontSize: '1.1rem', padding: '14px 40px' }}>
+            Log In to System
+          </Link>
+        </div>
+      </section>
+
+      {/* Decorative medical elements */}
+      <div style={{
+        position: 'absolute',
+        top: '5%',
+        right: '10%',
+        width: '400px',
+        height: '400px',
+        background: 'radial-gradient(circle, rgba(8, 145, 178, 0.05) 0%, transparent 70%)',
+        zIndex: -1
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '5%',
+        left: '10%',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
+        zIndex: -1
+      }} />
+    </main>
   );
 }
