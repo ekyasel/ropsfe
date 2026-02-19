@@ -334,7 +334,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
 
       {loading ? (
         <div className="card" style={{ padding: '4rem', textAlign: 'center', backgroundColor: 'white', color: '#64748b' }}>
-          <div className="animate-pulse">Memuat data pendaftaran...</div>
+          <div className="animate-pulse">Memuat data jadwal operasi...</div>
         </div>
       ) : error ? (
         <div className="card" style={{ padding: '3rem', textAlign: 'center', backgroundColor: 'white', color: '#dc2626' }}>

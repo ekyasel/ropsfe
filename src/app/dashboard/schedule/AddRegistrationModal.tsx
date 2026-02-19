@@ -245,7 +245,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
-                    <label>ASAL PENDAFTARAN (POLI)</label>
+                    <label>ASAL PENDAFTARAN</label>
                     <select name="pendaftaran_dari" required disabled={fetchingParams} defaultValue={initialData?.pendaftaran_dari} key={fetchingParams ? 'loading-poli' : 'loaded-poli'}>
                       <option value="">Pilih Poli</option>
                       {polis.map(p => (
