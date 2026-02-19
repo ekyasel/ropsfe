@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoginModal from "./LoginModal";
 
 const FEATURES = [
@@ -58,6 +58,14 @@ const FEATURES = [
 
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [systemOnline, setSystemOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/test-supabase')
+      .then(r => r.json())
+      .then(json => setSystemOnline(json.success === true))
+      .catch(() => setSystemOnline(false));
+  }, []);
 
   return (
     <main style={{ minHeight: "100vh", backgroundColor: "#f8fafc", fontFamily: '"Inter", sans-serif', position: "relative", overflowX: "hidden" }}>
@@ -89,10 +97,10 @@ export default function Home() {
 
           {/* Right */}
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ fontSize: "0.82rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 0 2px #dcfce7" }} />
-              Sistem Aktif
-            </span>
+              <span style={{ fontSize: "0.82rem", color: systemOnline === null ? '#d97706' : (systemOnline ? "#16a34a" : "#dc2626"), display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: systemOnline === null ? '#f59e0b' : (systemOnline ? "#22c55e" : "#ef4444"), display: "inline-block", boxShadow: systemOnline === null ? "0 0 0 2px #fef3c7" : (systemOnline ? "0 0 0 2px #dcfce7" : "0 0 0 2px #fee2e2") }} />
+                {systemOnline === null ? 'Memeriksa...' : (systemOnline ? 'Sistem Aktif' : 'Sistem Offline')}
+              </span>
             <button
               onClick={() => setIsLoginModalOpen(true)}
               className="button-primary"
