@@ -82,8 +82,8 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <div style={{ fontFamily: '"Outfit",sans-serif', fontWeight: 800, fontSize: "1.05rem", color: "#0f172a", lineHeight: 1.15 }}>RuangOperasi</div>
-              <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: 500, letterSpacing: "0.02em" }}>RSUD Sidoarjo Barat</div>
+              <div style={{ fontFamily: '"Outfit",sans-serif', fontWeight: 800, fontSize: "1.15rem", color: "#0f172a", lineHeight: 1.1, letterSpacing: "-0.01em" }}>SORA</div>
+              <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 500, letterSpacing: "0.01em" }}>Smart Operating Room Access</div>
             </div>
           </div>
 
@@ -132,11 +132,13 @@ export default function Home() {
               lineHeight: 1.08, letterSpacing: "-0.04em",
               marginBottom: "1.4rem",
             }}>
-              Manajemen{" "}
               <span style={{ background: "linear-gradient(120deg,#0891b2 30%,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                Ruang Operasi
+                SORA
               </span>
-              {" "}Modern
+              <br />
+              Smart Operating
+              <br />
+              Room Access
             </h1>
 
             <p style={{ fontSize: "1.1rem", color: "#475569", lineHeight: 1.75, marginBottom: "2.5rem", maxWidth: "480px" }}>
@@ -295,12 +297,12 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontFamily: '"Outfit",sans-serif', fontWeight: 800, fontSize: "0.95rem", color: "white" }}>RuangOperasi</div>
-                  <div style={{ fontSize: "0.68rem", color: "#64748b", fontWeight: 500 }}>RSUD Sidoarjo Barat</div>
+                  <div style={{ fontFamily: '"Outfit",sans-serif', fontWeight: 800, fontSize: "1.05rem", color: "white", letterSpacing: "-0.01em" }}>SORA</div>
+                  <div style={{ fontSize: "0.62rem", color: "#64748b", fontWeight: 500 }}>Smart Operating Room Access</div>
                 </div>
               </div>
               <p style={{ fontSize: "0.83rem", color: "#64748b", lineHeight: 1.65 }}>
-                Sistem manajemen ruang operasi modern untuk efisiensi dan koordinasi pelayanan medis.
+                Sistem manajemen ruang operasi cerdas untuk efisiensi dan koordinasi pelayanan medis RSUD Sidoarjo Barat.
               </p>
             </div>
 
