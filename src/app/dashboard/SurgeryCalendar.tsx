@@ -11,6 +11,7 @@ interface Registration {
   jam_rencana_operasi: string;
   rencana_tindakan: string;
   dokter_operator: string;
+  dokter_anestesi?: string;
   jenis_operasi: string;
   diagnosis: string;
   pendaftaran_dari: string;
@@ -259,6 +260,9 @@ export default function SurgeryCalendar() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #e2e8f0' }}>
                             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>
                               dr. {event.dokter_operator}
+                              <span style={{ display: 'block', fontWeight: 600, color: '#94a3b8', marginTop: '1px' }}>
+                                Anestesi: {event.dokter_anestesi || '-'}
+                              </span>
                             </div>
                             <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>
                               {event.penjamin} <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
@@ -289,6 +293,7 @@ export default function SurgeryCalendar() {
       { label: 'Jadwal', value: `${selectedEvent.tanggal_rencana_operasi} Pkl ${selectedEvent.jam_rencana_operasi.substring(0, 5)}` },
       { label: 'Jenis Operasi', value: selectedEvent.jenis_operasi, color: selectedEvent.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' },
       { label: 'Dokter Operator', value: `dr. ${selectedEvent.dokter_operator}` },
+      { label: 'Dokter Anestesi', value: selectedEvent.dokter_anestesi ? `dr. ${selectedEvent.dokter_anestesi}` : '-' },
       { label: 'Pendaftaran Pasien Dari', value: selectedEvent.pendaftaran_dari },
       { label: 'Ruangan Rawat Inap', value: selectedEvent.ruangan_rawat_inap },
       { label: 'Penjamin', value: `${selectedEvent.penjamin} (${selectedEvent.kelas})` },

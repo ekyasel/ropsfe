@@ -22,6 +22,7 @@ interface Registration {
   diagnosis: string;
   rencana_tindakan: string;
   dokter_operator: string;
+  dokter_anestesi?: string;
   penjamin: string;
   kelas: string;
   user_created?: string;
@@ -146,7 +147,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
         
         const headers = [
           "Dibuat Pada", "No. RM", "Nama Pasien", "Umur", "JK", "Tgl Operasi", "Jam", 
-          "Diagnosis", "Rencana Tindakan", "Dokter Operator", 
+          "Diagnosis", "Rencana Tindakan", "Dokter Operator", "Dokter Anestesi",
           "Jenis Operasi", "Asal Poli", "Ruang Rawat", "Kelas", "Penjamin"
         ];
 
@@ -164,6 +165,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
             `"${(reg.diagnosis || '').replace(/"/g, '""')}"`,
             `"${(reg.rencana_tindakan || '').replace(/"/g, '""')}"`,
             `"${reg.dokter_operator}"`,
+            `"${reg.dokter_anestesi || ''}"`,
             reg.jenis_operasi,
             `"${reg.pendaftaran_dari}"`,
             `"${reg.ruangan_rawat_inap}"`,
@@ -359,7 +361,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tgl Operasi</th>
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pasien</th>
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>RM / Umur</th>
-                    <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dokter</th>
+                    <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dokter Operator / Anestesi</th>
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Ruang</th>
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jenis / Penjamin</th>
                     <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tindakan</th>
@@ -422,6 +424,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                       </td>
                       <td style={{ padding: '18px 20px' }}>
                         <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>{reg.dokter_operator}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '3px' }}>Anestesi: {reg.dokter_anestesi || '-'}</div>
                       </td>
                       <td style={{ padding: '18px 20px' }}>
                         <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.85rem' }}>{reg.pendaftaran_dari}</div>

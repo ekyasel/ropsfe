@@ -21,6 +21,7 @@ interface RegistrationData {
   jam_rencana_operasi: string;
   rencana_tindakan: string;
   dokter_operator: string;
+  dokter_anestesi?: string;
   pendaftaran_dari: string;
   ruangan_rawat_inap: string;
   jenis_operasi: string;
@@ -47,6 +48,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
 
   // Parameter states
   const [dokters, setDokters] = useState<Parameter[]>([]);
+  const [dokterAnestesis, setDokterAnestesis] = useState<Parameter[]>([]);
   const [rooms, setRooms] = useState<Parameter[]>([]);
   const [polis, setPolis] = useState<Parameter[]>([]);
   const [penjamins, setPenjamins] = useState<Parameter[]>([]);
@@ -58,6 +60,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
     if (result.success) {
       const data: Parameter[] = result.data;
       setDokters(data.filter(p => p.param_type === 'DOKTER' && p.is_active));
+      setDokterAnestesis(data.filter(p => p.param_type === 'DOKTER_ANESTESI' && p.is_active));
       setRooms(data.filter(p => p.param_type === 'RUANG_RAWAT_INAP' && p.is_active));
       setPolis(data.filter(p => p.param_type === 'POLI' && p.is_active));
       setPenjamins(data.filter(p => p.param_type === 'PENJAMIN' && p.is_active));
@@ -233,14 +236,26 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>DOKTER OPERATOR</label>
-                  <select name="dokter_operator" required disabled={fetchingParams} defaultValue={initialData?.dokter_operator} key={fetchingParams ? 'loading-dokter' : 'loaded-dokter'}>
-                    <option value="">Pilih Dokter</option>
-                    {dokters.map(p => (
-                      <option key={p.id} value={p.param_name}>{p.param_name}</option>
-                    ))}
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>DOKTER OPERATOR</label>
+                    <select name="dokter_operator" required disabled={fetchingParams} defaultValue={initialData?.dokter_operator} key={fetchingParams ? 'loading-dokter' : 'loaded-dokter'}>
+                      <option value="">Pilih Dokter</option>
+                      {dokters.map(p => (
+                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>DOKTER ANESTESI</label>
+                    <select name="dokter_anestesi" required disabled={fetchingParams} defaultValue={initialData?.dokter_anestesi} key={fetchingParams ? 'loading-anestesi' : 'loaded-anestesi'}>
+                      <option value="">Pilih Dokter Anestesi</option>
+                      {dokterAnestesis.map(p => (
+                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

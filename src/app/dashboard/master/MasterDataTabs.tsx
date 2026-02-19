@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 
 const TABS = [
   { id: 'DOKTER', label: 'Dokter' },
+  { id: 'DOKTER_ANESTESI', label: 'Dokter Anestesi' },
   { id: 'RUANG_RAWAT_INAP', label: 'Ruang Rawat Inap' },
   { id: 'POLI', label: 'Poli' },
   { id: 'PENJAMIN', label: 'Penjamin' },
