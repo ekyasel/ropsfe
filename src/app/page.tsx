@@ -25,7 +25,7 @@ const FEATURES = [
     num: "02",
     title: "Manajemen Personel",
     description:
-      "Pengelolaan staf medis, dokter spesialis, perawat bedah, dan tim farmasi.",
+      "Pengelolaan data staf, dokter spesialis, ruang rawat inap, poli, penjamin dan kelas.",
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -41,7 +41,7 @@ const FEATURES = [
     num: "03",
     title: "Laporan & Analitik",
     description:
-      "Akses data kinerja, turnover time, dan statistik operasional yang mendalam.",
+      "Akses data laporan & statistik operasional yang mendalam.",
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" />
