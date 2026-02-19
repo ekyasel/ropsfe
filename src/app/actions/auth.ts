@@ -698,3 +698,51 @@ export async function getPoliReport(year: string, poli: string) {
     return { error: `Koneksi ke server API gagal: ${errorMessage}` };
   }
 }
+export async function getCronLogs(
+  params: {
+    date?: string;
+    page?: number;
+    pageSize?: number;
+  } = {},
+) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  const apiUrl = process.env.API_URL || "http://localhost:3002";
+
+  const { date, page = 1, pageSize = 20 } = params;
+  const queryParams = new URLSearchParams();
+  if (date) queryParams.append("date", date);
+  queryParams.append("page", page.toString());
+  queryParams.append("pageSize", pageSize.toString());
+
+  const url = `${apiUrl}/api/cron-logs?${queryParams.toString()}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+
+    if (!response.ok) {
+      return { error: data.message || "Gagal mengambil data log notifikasi" };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Error tidak diketahui";
+    console.error("Fetch Cron Logs Error:", err);
+    return { error: `Koneksi ke server API gagal: ${errorMessage}` };
+  }
+}
