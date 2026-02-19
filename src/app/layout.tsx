@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ruang Operasi - RSUD Sidoarjo Barat",
-  description: "Sistem Manajemen Ruang Operasi RSUD Sidoarjo Barat",
+  title: "SORA - RSUD Sidoarjo Barat",
+  description: "Smart Operating Room Access RSUD Sidoarjo Barat",
 };
 
 export default function RootLayout({

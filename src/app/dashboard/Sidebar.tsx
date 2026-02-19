@@ -54,7 +54,10 @@ export default function Sidebar({ userName, userRole, logoutAction, isCollapsed,
                 <path d="M19 14V10h-4V6h-4v4H7v4h4v4h4v-4h4z"/>
               </svg>
             </div>
-            <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>Ruang Operasi</span>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>SORA</span>
+              <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>Smart Operating Room Access</span>
+            </div>
           </div>
         )}
         <button 
