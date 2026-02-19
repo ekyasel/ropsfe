@@ -218,15 +218,6 @@ export default function Home() {
                   <polyline points="60,220 85,220 92,208 99,232 106,208 113,232 120,220 260,220" stroke="#0891b2" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity=".3"/>
                 </svg>
 
-                <div style={{ marginTop: "1.75rem" }}>
-                  <div style={{ fontFamily: '"Outfit",sans-serif', fontWeight: 700, fontSize: "1rem", color: "#0f172a", marginBottom: "0.4rem" }}>
-                    Penjadwalan Ruang Operasi
-                  </div>
-                  <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, maxWidth: "270px", margin: "0 auto" }}>
-                    Koordinasi tim medis dan jadwal operasi dalam satu platform terpadu.
-                  </p>
-                </div>
-
 
               </div>
             </div>
