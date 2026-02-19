@@ -153,6 +153,7 @@ export default function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
             >
               <option value="Admin">Admin</option>
               <option value="SuperAdmin">SuperAdmin</option>
+              <option value="Farmasi">Farmasi</option>
             </select>
           </div>
 

@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddRegistrationModal from './AddRegistrationModal';
 import RegistrationsTable from './RegistrationsTable';
 
 export default function SchedulePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [userRole, setUserRole] = useState<string>('');
+
+  useEffect(() => {
+    const role = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('user_role='))
+      ?.split('=')[1];
+    if (role) setUserRole(decodeURIComponent(role));
+  }, []);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -19,13 +28,15 @@ export default function SchedulePage() {
           <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>Jadwal Operasi</h1>
           <p style={{ color: '#64748b', fontSize: '0.95rem' }}>Kalender dan antrean prosedur bedah aktif</p>
         </div>
-        <button 
-          className="button-primary" 
-          style={{ padding: '10px 16px', fontSize: '0.875rem' }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          + Jadwal Baru
-        </button>
+        {userRole !== 'Farmasi' && (
+          <button 
+            className="button-primary" 
+            style={{ padding: '10px 16px', fontSize: '0.875rem' }}
+            onClick={() => setIsModalOpen(true)}
+          >
+            + Jadwal Baru
+          </button>
+        )}
       </header>
       
       <div style={{ marginTop: '1.5rem' }}>

@@ -1,6 +1,11 @@
-import Link from 'next/link';
+"use client";
+
+import { useState } from 'react';
+import LoginModal from './LoginModal';
 
 export default function Home() {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   return (
     <main style={{ 
       display: 'flex', 
@@ -39,9 +44,9 @@ export default function Home() {
           marginBottom: '3rem',
           lineHeight: 1.6
         }}>
-          Orkestrator digital komprehensif untuk manajemen ruang bedah RSUD Sidoarjo Barat. 
-          Pantau personel, lacak kemajuan bedah, dan optimalkan efisiensi ruang operasi 
-          dengan presisi.
+          Optimalkan efisiensi dan koordinasi tim medis dengan platform manajemen 
+          kamar bedah modern. Solusi terintegrasi untuk penjadwalan, monitoring, 
+          dan pelaporan data operasi secara akurat.
         </p>
         
         <div style={{ 
@@ -51,31 +56,40 @@ export default function Home() {
           width: '100%'
         }}>
           <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
-            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Personnel</h3>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Jadwal Operasi</h3>
             <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
-              Manage surgeon rosters, nursing staff, and auxiliary medical personnel.
+              Pemantauan jadwal dan status operasi secara real-time untuk efisiensi kamar bedah.
             </p>
           </div>
           <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
-            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Operations</h3>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Manajemen Personel</h3>
             <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
-              Real-time scheduling and status monitoring of active surgical rooms.
+              Pengelolaan staf medis, dokter spesialis, perawat bedah, dan tim farmasi.
             </p>
           </div>
           <div className="card" style={{ padding: '2rem', textAlign: 'left', backgroundColor: 'white' }}>
-            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Analytics</h3>
+            <h3 style={{ marginBottom: '0.8rem', color: 'var(--accent)' }}>Laporan & Analitik</h3>
             <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
-              Detailed reporting on room turnover times and institutional efficiency.
+              Akses data kinerja, turnover time, dan statistik operasional yang mendalam.
             </p>
           </div>
         </div>
 
         <div style={{ marginTop: '4rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <Link href="/login" className="button-primary" style={{ fontSize: '1.1rem', padding: '14px 40px' }}>
+          <button 
+            onClick={() => setIsLoginModalOpen(true)}
+            className="button-primary" 
+            style={{ fontSize: '1.1rem', padding: '14px 40px' }}
+          >
             Log In to System
-          </Link>
+          </button>
         </div>
       </section>
+
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
 
       {/* Decorative medical elements */}
       <div style={{

@@ -8,31 +8,34 @@ export function middleware(request: NextRequest) {
   // Protect /dashboard
   if (pathname.startsWith("/dashboard")) {
     if (!sessionToken) {
-      // Not logged in, redirect to login
-      const loginUrl = new URL("/login", request.url);
-      return NextResponse.redirect(loginUrl);
+      // Not logged in, redirect to landing page
+      const landingUrl = new URL("/", request.url);
+      return NextResponse.redirect(landingUrl);
     }
 
     const userRole = request.cookies.get("user_role")?.value;
 
-    // RBAC: Admin cannot access users management and settings
-    if (userRole === "Admin") {
-      if (
-        pathname.startsWith("/dashboard/users") ||
-        pathname.startsWith("/dashboard/settings")
-      ) {
+    // RBAC: Admin and Farmasi can only access dashboard and schedule
+    if (userRole === "Admin" || userRole === "Farmasi") {
+      const allowedPaths = ["/dashboard", "/dashboard/schedule"];
+      // If the current path is NOT an allowed path and NOT a subpath of an allowed path (except /dashboard itself which should match exactly or be /dashboard/schedule)
+      // Actually simpler: if it starts with restricted paths or isn't starting with allowed ones.
+      // Let's use a clear check:
+      const isAllowed = allowedPaths.some(
+        (path) => pathname === path || pathname.startsWith(path + "/"),
+      );
+
+      if (!isAllowed) {
         const dashboardUrl = new URL("/dashboard", request.url);
         return NextResponse.redirect(dashboardUrl);
       }
     }
   }
 
-  // Redirect logged in users away from login/register
-  if (pathname === "/login" || pathname === "/register") {
-    if (sessionToken) {
-      const dashboardUrl = new URL("/dashboard", request.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
+  // Disable public registration and legacy login
+  if (pathname === "/register" || pathname === "/login") {
+    const landingUrl = new URL("/", request.url);
+    return NextResponse.redirect(landingUrl);
   }
 
   return NextResponse.next();

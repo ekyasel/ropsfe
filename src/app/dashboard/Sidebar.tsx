@@ -30,7 +30,9 @@ export default function Sidebar({ userName, userRole, logoutAction, isCollapsed,
 
   const filteredMenuItems = userRole === 'SuperAdmin' 
     ? menuItems 
-    : menuItems.filter(item => !item.restricted);
+    : menuItems.filter(item => 
+        item.href === '/dashboard' || item.href === '/dashboard/schedule'
+      );
 
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>

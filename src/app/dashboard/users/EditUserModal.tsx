@@ -159,6 +159,7 @@ export default function EditUserModal({ user, isOpen, onClose }: EditUserModalPr
             >
               <option value="Admin">Admin</option>
               <option value="SuperAdmin">SuperAdmin</option>
+              <option value="Farmasi">Farmasi</option>
             </select>
           </div>
 

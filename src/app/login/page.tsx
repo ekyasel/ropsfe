@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { login } from '../actions/auth';
-import Link from 'next/link';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -114,9 +113,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={{ marginTop: '2.5rem', textAlign: 'center', fontSize: '0.95rem', color: '#64748b' }}>
-          Personel baru? <Link href="/register" style={{ color: 'var(--accent)', fontWeight: 600 }}>Daftar di Sini</Link>
-        </p>
+
       </div>
     </main>
   );

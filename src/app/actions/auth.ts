@@ -93,7 +93,7 @@ export async function login(formData: FormData) {
   // Store the full name for the dashboard
   if (data.user?.full_name) {
     cookieStore.set("user_name", data.user.full_name, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
@@ -103,7 +103,7 @@ export async function login(formData: FormData) {
   // Store the role for the dashboard
   if (data.user?.role) {
     cookieStore.set("user_role", data.user.role, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
