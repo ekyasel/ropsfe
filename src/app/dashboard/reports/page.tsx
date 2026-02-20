@@ -1,6 +1,4 @@
-import MonthlyReportWidget from './MonthlyReportWidget';
-import InsuranceReportWidget from './InsuranceReportWidget';
-import PoliReportWidget from './PoliReportWidget';
+import ReportsClient from './ReportsClient';
 
 export default function ReportsPage() {
   return (
@@ -11,12 +9,8 @@ export default function ReportsPage() {
           <p style={{ color: '#64748b', fontSize: '0.95rem' }}>Statistik dan rekapitulasi data pendaftaran</p>
         </div>
       </header>
-      
-      <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <MonthlyReportWidget />
-        <InsuranceReportWidget />
-        <PoliReportWidget />
-      </div>
+
+      <ReportsClient />
     </>
   );
 }
