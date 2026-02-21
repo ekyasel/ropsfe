@@ -37,3 +37,37 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { date, job_name, room } = body;
+
+    if (!date || !job_name) {
+      return NextResponse.json(
+        { error: "Date and job_name are required." },
+        { status: 400 },
+      );
+    }
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session_token")?.value;
+
+    const upstream = await fetch(UPSTREAM, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ date, job_name, room }),
+    });
+
+    const data = await upstream.json();
+    return NextResponse.json(data, { status: upstream.status });
+  } catch (error) {
+    console.error("Error in POST /api/cron-logs:", error);
+    return NextResponse.json(
+      { error: "Internal server error." },
+      { status: 500 },
+    );
+  }
+}
