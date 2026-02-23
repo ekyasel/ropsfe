@@ -180,7 +180,8 @@ export default function NotificationsClient() {
   };
 
   const sc = (s: string, hasUpdates: boolean = false) =>
-    hasUpdates ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
+    (hasUpdates && s === "need_resend") ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
+    hasUpdates ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
     s === "success" || s === "sent" ? { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" } :
     s === "failed" || s === "error"  ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
     s === "skipped" ? { color: "#64748b", bg: "#f1f5f9", border: "#e2e8f0" } :
