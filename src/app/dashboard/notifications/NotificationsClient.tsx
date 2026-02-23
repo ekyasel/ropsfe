@@ -290,7 +290,7 @@ export default function NotificationsClient() {
                       </td>
                       <td style={{ padding: "12px 15px", color: "#64748b", fontFamily: "monospace" }}>{room.phone || "-"}</td>
                       <td style={{ padding: "12px 15px", color: "#64748b", fontSize: "0.8rem", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {room.has_updates ? "Terdapat data baru dan perlu re-send manual" : (room.failure_reason || "-")}
+                        {(room.has_updates && room.status === 'sent') ? "Terdapat data baru dan perlu re-send manual" : (room.failure_reason || "-")}
                       </td>
                       <td style={{ padding: "8px 15px" }}>
                         {(room.status === 'failed' || room.status === 'skipped' || room.status === 'need_resend' || room.has_updates) && (
