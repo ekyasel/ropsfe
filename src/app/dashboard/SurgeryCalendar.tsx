@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { getRegistrations } from '../actions/auth';
+import { getRegistrations, getParameters } from '../actions/auth';
+
+interface Parameter {
+  id: string;
+  param_type: string;
+  param_name: string;
+  is_active: boolean;
+}
 
 interface Registration {
   id: string;
@@ -21,10 +28,12 @@ interface Registration {
   nomor_telp_1: string;
   penjamin: string;
   kelas: string;
+  ruang_operasi?: string;
 }
 
 export default function SurgeryCalendar() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [ruangOperasis, setRuangOperasis] = useState<Parameter[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -52,6 +61,22 @@ export default function SurgeryCalendar() {
       console.error("Failed to load calendar data:", error);
     }
   }, [currentDate]);
+
+  const loadParams = useCallback(async () => {
+    try {
+      const result = await getParameters();
+      if (result.success) {
+        const data = result.data as Parameter[];
+        setRuangOperasis(data.filter(p => p.param_type === 'RUANG_OPERASI' && p.is_active).sort((a, b) => a.param_name.localeCompare(b.param_name)));
+      }
+    } catch (error) {
+      console.error("Failed to load parameters:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadParams();
+  }, [loadParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -198,84 +223,95 @@ export default function SurgeryCalendar() {
              regDate.getFullYear() === selectedDate.getFullYear();
     });
 
+    // Determine columns: use ruangOperasis from master data, and always prepend "Belum Teralokasi"
+    const colList = [
+      { id: 'unassigned', param_name: 'Belum Teralokasi' },
+      ...ruangOperasis
+    ] as Parameter[];
+
     return (
-      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ marginBottom: '1.25rem' }}>
           <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Timeline Operasi</h3>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{dayName}</h2>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingRight: '0.5rem' }}>
-          {hours.map(hour => {
-            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-            const eventsAtHour = dayEvents.filter(e => e.jam_rencana_operasi.startsWith(timeStr.substring(0, 2)));
-
-            return (
-              <div key={hour} style={{ display: 'flex', gap: '0.75rem' }}>
-                <div style={{ width: '40px', fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '8px' }}>
-                  {timeStr}
-                </div>
-                <div style={{ 
-                  flex: 1, 
-                  borderTop: '1px solid #f1f5f9', 
-                  paddingTop: '6px',
-                  paddingBottom: eventsAtHour.length > 0 ? '8px' : '0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.4rem',
-                  minHeight: eventsAtHour.length > 0 ? 'auto' : '28px'
-                }}>
-                  {eventsAtHour.length > 0 ? (
-                    eventsAtHour.map(event => (
-                      <div 
-                        key={event.id}
-                        onClick={() => handleEventClick(event)}
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: '8px',
-                          backgroundColor: event.jenis_operasi === 'CITO' ? '#fff1f2' : '#f0f9ff',
-                          borderLeft: `4px solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                          cursor: 'pointer'
-                        }}
-                        className="event-card"
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9', textTransform: 'uppercase' }}>
-                              {event.ruangan_rawat_inap || 'POLI'} • {event.jenis_operasi}
-                            </span>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>{event.jam_rencana_operasi.substring(0, 5)}</span>
-                          </div>
-                          
-                          <div style={{ marginTop: '2px' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#1e293b' }}>
-                              {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun} TH</span>
-                            </div>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginTop: '2px', lineHeight: '1.4' }}>
-                              {event.rencana_tindakan}
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #e2e8f0' }}>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>
-                              dr. {event.dokter_operator}
-                              <span style={{ display: 'block', fontWeight: 600, color: '#94a3b8', marginTop: '1px' }}>
-                                Anestesi: {event.dokter_anestesi || '-'}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8' }}>
-                              {event.penjamin} <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : null}
-                </div>
+        <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', minWidth: `${colList.length * 180 + 60}px`, borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5 }}>
+            <div style={{ width: '60px' }}></div>
+            {colList.map(col => (
+              <div key={col.id} style={{ flex: 1, textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
+                {col.param_name}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', minWidth: `${colList.length * 180 + 60}px` }}>
+            {hours.map(hour => {
+              const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+              
+              return (
+                <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: '80px' }}>
+                  <div style={{ width: '60px', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
+                    {timeStr}
+                  </div>
+                  {colList.map(col => {
+                    const eventsInCell = dayEvents.filter(e => 
+                      e.jam_rencana_operasi.substring(0, 2) === hour.toString().padStart(2, '0') &&
+                      (e.ruang_operasi === col.param_name || (!e.ruang_operasi && col.id === 'unassigned'))
+                    );
+
+                    return (
+                      <div key={col.id} style={{ flex: 1, padding: '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
+                        {eventsInCell.map(event => (
+                          <div 
+                            key={event.id}
+                            onClick={() => handleEventClick(event)}
+                            style={{
+                              padding: '6px 8px',
+                              borderRadius: '6px',
+                              backgroundColor: event.jenis_operasi === 'CITO' ? '#fff1f2' : '#f0f9ff',
+                              borderLeft: `3px solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                              cursor: 'pointer'
+                            }}
+                            className="event-card"
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' }}>
+                                  {event.jenis_operasi}
+                                </span>
+                                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94a3b8' }}>{event.jam_rencana_operasi.substring(0, 5)}</span>
+                              </div>
+                              <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1e293b' }}>
+                                {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun}th</span>
+                              </div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', lineHeight: '1.3', marginTop: '1px' }}>
+                                {event.rencana_tindakan}
+                              </div>
+                              <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #e2e8f0' }}>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#475569' }}>
+                                  dr. {event.dokter_operator}
+                                </div>
+                                <div style={{ fontSize: '0.6rem', fontWeight: 600, color: '#94a3b8' }}>
+                                  Anestesi: {event.dokter_anestesi || '-'}
+                                </div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b', marginTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
+                                  <span>{event.penjamin}</span>
+                                  <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -291,6 +327,7 @@ export default function SurgeryCalendar() {
       { label: 'Diagnosis', value: selectedEvent.diagnosis },
       { label: 'Rencana Tindakan', value: selectedEvent.rencana_tindakan },
       { label: 'Jadwal', value: `${selectedEvent.tanggal_rencana_operasi} Pkl ${selectedEvent.jam_rencana_operasi.substring(0, 5)}` },
+      { label: 'Ruang Operasi', value: selectedEvent.ruang_operasi || '-' },
       { label: 'Jenis Operasi', value: selectedEvent.jenis_operasi, color: selectedEvent.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' },
       { label: 'Dokter Operator', value: `dr. ${selectedEvent.dokter_operator}` },
       { label: 'Dokter Anestesi', value: selectedEvent.dokter_anestesi ? `dr. ${selectedEvent.dokter_anestesi}` : '-' },
@@ -365,15 +402,21 @@ export default function SurgeryCalendar() {
   return (
     <div style={{ 
       display: 'grid', 
-      gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+      gridTemplateColumns: '340px 1fr', 
       gap: '1.5rem',
-      marginTop: '1.5rem'
-    }}>
+      marginTop: '1.5rem',
+      alignItems: 'start'
+    }} className="calendar-grid-container">
       {renderCalendar()}
       {renderTimeline()}
       {renderDetailModal()}
 
       <style jsx>{`
+        @media (max-width: 1024px) {
+          .calendar-grid-container {
+            grid-template-columns: 1fr !important;
+          }
+        }
         .hover-scale {
           transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }

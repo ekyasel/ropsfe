@@ -47,6 +47,8 @@ export default function AddParameterModal({ isOpen, onClose, paramType, onSucces
   const getLabel = () => {
     switch (paramType) {
       case 'DOKTER': return 'Nama Dokter';
+      case 'DOKTER_ANESTESI': return 'Nama Dokter Anestesi';
+      case 'RUANG_OPERASI': return 'Nama Ruang Operasi';
       case 'RUANG_RAWAT_INAP': return 'Nama Ruang';
       case 'POLI': return 'Nama Poli';
       case 'PENJAMIN': return 'Nama Penjamin';
@@ -93,7 +95,7 @@ export default function AddParameterModal({ isOpen, onClose, paramType, onSucces
               name="param_name" 
               type="text" 
               required 
-              placeholder={`Contoh: ${paramType === 'DOKTER' ? 'dr. Ahmad Sp.B' : 'Gedung A'}`}
+              placeholder={`Contoh: ${paramType === 'DOKTER' ? 'dr. Ahmad Sp.B' : paramType === 'RUANG_OPERASI' ? 'OK 1' : 'Gedung A'}`}
               style={{
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',

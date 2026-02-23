@@ -30,6 +30,7 @@ interface RegistrationData {
   diagnosis: string;
   nomor_telp_1: string;
   nomor_telp_2?: string;
+  ruang_operasi?: string;
 }
 
 interface AddRegistrationModalProps {
@@ -37,19 +38,23 @@ interface AddRegistrationModalProps {
   onClose: () => void;
   onSuccess: () => void;
   initialData?: RegistrationData | null;
+  userRole?: string;
 }
 
-export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initialData }: AddRegistrationModalProps) {
+export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initialData, userRole }: AddRegistrationModalProps) {
   const [loading, setLoading] = useState(false);
   const [fetchingParams, setFetchingParams] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const isEdit = !!initialData?.id;
+  const isAdmin = userRole === 'Admin';
+  const isTimeDisabled = isAdmin;
 
   // Parameter states
   const [dokters, setDokters] = useState<Parameter[]>([]);
   const [dokterAnestesis, setDokterAnestesis] = useState<Parameter[]>([]);
   const [rooms, setRooms] = useState<Parameter[]>([]);
+  const [ruangOperasis, setRuangOperasis] = useState<Parameter[]>([]);
   const [polis, setPolis] = useState<Parameter[]>([]);
   const [penjamins, setPenjamins] = useState<Parameter[]>([]);
   const [kelass, setKelass] = useState<Parameter[]>([]);
@@ -62,6 +67,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
       setDokters(data.filter(p => p.param_type === 'DOKTER' && p.is_active));
       setDokterAnestesis(data.filter(p => p.param_type === 'DOKTER_ANESTESI' && p.is_active));
       setRooms(data.filter(p => p.param_type === 'RUANG_RAWAT_INAP' && p.is_active));
+      setRuangOperasis(data.filter(p => p.param_type === 'RUANG_OPERASI' && p.is_active).sort((a, b) => a.param_name.localeCompare(b.param_name)));
       setPolis(data.filter(p => p.param_type === 'POLI' && p.is_active));
       setPenjamins(data.filter(p => p.param_type === 'PENJAMIN' && p.is_active));
       setKelass(data.filter(p => p.param_type === 'KELAS' && p.is_active));
@@ -232,7 +238,15 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                   </div>
                   <div className="form-group">
                     <label>JAM RENCANA OPERASI</label>
-                    <input name="jam_rencana_operasi" type="time" required defaultValue={initialData?.jam_rencana_operasi} />
+                    <input 
+                      name="jam_rencana_operasi" 
+                      type="time" 
+                      required 
+                      disabled={isTimeDisabled}
+                      defaultValue={isAdmin && !isEdit ? "00:00" : initialData?.jam_rencana_operasi} 
+                      title={isTimeDisabled ? "Jam rencana operasi akan dijadwalkan oleh Super Admin (Petugas Ruang Operasi)" : ""}
+                      className={isTimeDisabled ? "disabled-input" : ""}
+                    />
                   </div>
                 </div>
 
@@ -257,6 +271,18 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                     </select>
                   </div>
                 </div>
+
+                {userRole === 'SuperAdmin' && (
+                  <div className="form-group">
+                    <label>RUANG OPERASI</label>
+                    <select name="ruang_operasi" required disabled={fetchingParams} defaultValue={initialData?.ruang_operasi} key={fetchingParams ? 'loading-ruang-operasi' : 'loaded-ruang-operasi'}>
+                      <option value="">Pilih Ruang Operasi</option>
+                      {ruangOperasis.map(p => (
+                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
@@ -360,6 +386,11 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
           outline: none;
           border-color: var(--accent);
           box-shadow: 0 0 0 2px var(--accent-soft);
+        }
+        .disabled-input {
+          background-color: #e2e8f0 !important;
+          color: #64748b !important;
+          cursor: not-allowed;
         }
       `}</style>
     </div>

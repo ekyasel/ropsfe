@@ -47,6 +47,7 @@ export default function SchedulePage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleRefresh}
+        userRole={userRole}
       />
     </>
   );
