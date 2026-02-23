@@ -37,6 +37,8 @@ function todayWIB() {
 type RoomStatus = {
   room: string;
   surgery_count: number;
+  log_surgery_count: number;
+  has_updates: boolean;
   status: "sent" | "skipped" | "failed" | string;
   phone: string | null;
   failure_reason: string | null;
@@ -177,14 +179,17 @@ export default function NotificationsClient() {
     }
   };
 
-  const sc = (s: string) =>
+  const sc = (s: string, hasUpdates: boolean = false) =>
+    hasUpdates ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
     s === "success" || s === "sent" ? { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" } :
     s === "failed" || s === "error"  ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
     s === "skipped" ? { color: "#64748b", bg: "#f1f5f9", border: "#e2e8f0" } :
     s === "need_resend" ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
                       { color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" };
 
-  const label = (s: string) =>
+  const label = (s: string, hasUpdates: boolean = false) =>
+    (hasUpdates && s === "need_resend") ? "Perlu Kirim" :
+    hasUpdates ? "Ada Data Baru" :
     s === "success" || s === "sent" ? "Sukses" : 
     s === "failed" || s === "error" ? "Gagal" : 
     s === "skipped" ? "Lewati" :
@@ -272,22 +277,22 @@ export default function NotificationsClient() {
                 </tr>
               ) : (
                 roomStatuses.map((room, idx) => {
-                  const s = sc(room.status);
+                  const s = sc(room.status, room.has_updates);
                   return (
                     <tr key={idx} style={{ borderTop: "1px solid #f1f5f9" }}>
                       <td style={{ padding: "12px 15px", fontWeight: 700, color: "#0f172a" }}>{room.room}</td>
                       <td style={{ padding: "12px 15px", color: "#475569" }}>{room.surgery_count}</td>
                       <td style={{ padding: "12px 15px" }}>
                         <span style={{ fontSize: "0.7rem", fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.border}`, padding: "2px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                          {label(room.status)}
+                          {label(room.status, room.has_updates)}
                         </span>
                       </td>
                       <td style={{ padding: "12px 15px", color: "#64748b", fontFamily: "monospace" }}>{room.phone || "-"}</td>
                       <td style={{ padding: "12px 15px", color: "#64748b", fontSize: "0.8rem", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {room.failure_reason || "-"}
+                        {room.has_updates ? "Terdapat data baru dan perlu re-send manual" : (room.failure_reason || "-")}
                       </td>
                       <td style={{ padding: "8px 15px" }}>
-                        {(room.status === 'failed' || room.status === 'skipped' || room.status === 'need_resend') && (
+                        {(room.status === 'failed' || room.status === 'skipped' || room.status === 'need_resend' || room.has_updates) && (
                           <button 
                             onClick={() => handleResend(room.room)}
                             disabled={resending}
