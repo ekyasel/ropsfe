@@ -21,6 +21,17 @@ type Pagination = {
   totalPages: number;
 };
 
+type Parameter = {
+  id: string;
+  param_type: string;
+  param_code: string;
+  param_name: string;
+  param_value: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
 function toLocalDateString(dateStr: string) {
   return new Date(dateStr).toLocaleString("id-ID", {
     day: "2-digit", month: "short", year: "numeric",
@@ -71,6 +82,10 @@ export default function NotificationsClient() {
   const [loadingRooms, setLoadingRooms]   = useState(false);
   const [roomError, setRoomError]         = useState<string | null>(null);
 
+  // Parameter states
+  const [fonnteParameter, setFonnteParameter] = useState<Parameter | null>(null);
+  const [savingToken, setSavingToken]         = useState(false);
+
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -119,8 +134,77 @@ export default function NotificationsClient() {
 
   const setRowStatuses = (rooms: RoomStatus[]) => setRoomStatuses(rooms);
 
+  const fetchFonnteToken = useCallback(async () => {
+    try {
+      const res = await fetch('/api/parameters');
+      const json = await res.json();
+      if (res.ok && Array.isArray(json)) {
+        const tokenParam = json.find((p: Parameter) => p.param_code === 'FONNTE_TOKEN');
+        if (tokenParam) setFonnteParameter(tokenParam);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil token Fonnte:", err);
+    }
+  }, []);
+
+  const handleSaveToken = async () => {
+    if (!fonnteParameter) return;
+    
+    const result = await Swal.fire({
+      title: 'Konfirmasi',
+      text: 'Apakah token pengiriman notif WhatsApp akan diganti dengan token baru?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Ganti',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#0891b2',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    setSavingToken(true);
+    try {
+      const res = await fetch(`/api/parameters?id=${fonnteParameter.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          param_value: fonnteParameter.param_value
+        })
+      });
+      
+      const json = await res.json();
+      if (!res.ok) {
+        Swal.fire({
+          title: 'Gagal',
+          text: json.error || 'Gagal menyimpan token.',
+          icon: 'error'
+        });
+      } else {
+        Swal.fire({
+          title: 'Berhasil',
+          text: 'Token Fonnte berhasil diperbarui.',
+          icon: 'success',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      }
+    } catch {
+      Swal.fire({
+        title: 'Kesalahan',
+        text: 'Terjadi kesalahan saat menghubungi server.',
+        icon: 'error'
+      });
+    } finally {
+      setSavingToken(false);
+    }
+  };
+
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
   useEffect(() => { fetchRoomStatus(resendDate); }, [resendDate, fetchRoomStatus]);
+  useEffect(() => { fetchFonnteToken(); }, [fetchFonnteToken]);
 
   const handleDateChange = (val: string) => { setDate(val); setPage(1); };
 
@@ -314,6 +398,63 @@ export default function NotificationsClient() {
           </table>
         </div>
       </section>
+
+      {/* WhatsApp Token Configuration Section */}
+      {fonnteParameter && (
+        <section style={{ marginTop: "1.5rem", background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1.5rem", boxShadow: "0 1px 4px rgba(0,0,0,.04)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Konfigurasi Token WhatsApp
+            </h2>
+          </div>
+          <p style={{ color: "#64748b", fontSize: "0.875rem", marginBottom: "1.25rem" }}>
+            Token API Fonnte digunakan untuk mengirim pesan melalui WhatsApp. Token ini dikelola secara terpusat di database.
+          </p>
+          
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "1rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, minWidth: "300px" }}>
+              <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#475569" }}>Fonnte API Token</label>
+              <input
+                type="text" 
+                value={fonnteParameter.param_value || ""}
+                onChange={(e) => setFonnteParameter({ ...fonnteParameter, param_value: e.target.value })}
+                placeholder="Masukkan token Fonnte"
+                style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "8px 12px", fontSize: "0.875rem", color: "#0f172a", outline: "none", background: "#f8fafc" }}
+              />
+            </div>
+            <button 
+              onClick={handleSaveToken}
+              disabled={savingToken}
+              style={{ 
+                height: "40px", padding: "8px 20px", borderRadius: "8px", 
+                background: "#0891b2", color: "white", fontWeight: 600, fontSize: "0.85rem", 
+                border: "none", cursor: savingToken ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                transition: "all 0.2s"
+              }}
+            >
+              {savingToken ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  Menyimpan...
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  Simpan Token
+                </>
+              )}
+            </button>
+          </div>
+        </section>
+      )}
 
       <div style={{ margin: "2.5rem 0 1rem", borderTop: "1px solid #e2e8f0" }}></div>
 
