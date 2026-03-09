@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getRegistrations, updateRegistration } from '../../actions/auth';
+import { getRegistrations, updateRegistration, getParameters } from '../../actions/auth';
 import * as XLSX from 'xlsx';
 
 interface Registration {
@@ -26,8 +26,16 @@ interface Registration {
   penjamin: string;
   kelas: string;
   catatan?: string;
+  tindakan_operasi?: string;
   user_created?: string;
   created_at?: string;
+}
+
+interface Parameter {
+  id: string;
+  param_type: string;
+  param_name: string;
+  is_active: boolean;
 }
 
 const MONTHS = [
@@ -65,7 +73,6 @@ export default function RekapitulasiWidget() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [totalRecords, setTotalRecords] = useState(0);
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -73,8 +80,10 @@ export default function RekapitulasiWidget() {
   const [editFormData, setEditFormData] = useState({
     catatan: '',
     klasifikasi_operasi: '',
+    tindakan_operasi: '',
   });
   const [saving, setSaving] = useState(false);
+  const [tindakanOptions, setTindakanOptions] = useState<Parameter[]>([]);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,6 +107,7 @@ export default function RekapitulasiWidget() {
     setEditFormData({
       catatan: reg.catatan || '',
       klasifikasi_operasi: reg.klasifikasi_operasi || '',
+      tindakan_operasi: reg.tindakan_operasi || '',
     });
     setIsEditing(true);
   };
@@ -105,7 +115,7 @@ export default function RekapitulasiWidget() {
   const handleCancel = () => {
     setIsEditing(false);
     setCurrentReg(null);
-    setEditFormData({ catatan: '', klasifikasi_operasi: '' });
+    setEditFormData({ catatan: '', klasifikasi_operasi: '', tindakan_operasi: '' });
   };
 
   const handleSave = async () => {
@@ -115,6 +125,7 @@ export default function RekapitulasiWidget() {
       const res = await updateRegistration(currentReg.id, {
         catatan: editFormData.catatan,
         klasifikasi_operasi: editFormData.klasifikasi_operasi,
+        tindakan_operasi: editFormData.tindakan_operasi,
       });
 
       if (res.success) {
@@ -165,8 +176,9 @@ export default function RekapitulasiWidget() {
         'KELAS': reg.kelas,
         'NOMOR TELP 1 (WA)': reg.nomor_telp_1 || '',
         'NOMOR TELP 2 (WA)': reg.nomor_telp_2 || '',
-        'CATATAN': reg.catatan || '',
+        'TINDAKAN OPERASI': reg.tindakan_operasi || '',
         'KLASIFIKASI OPERASI': reg.klasifikasi_operasi || '',
+        'CATATAN': reg.catatan || '',
       };
     });
 
@@ -208,11 +220,7 @@ export default function RekapitulasiWidget() {
       if (result.success) {
         const rawData = result.data;
         const list = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
-        const total = Array.isArray(rawData)
-          ? rawData.length
-          : (rawData?.pagination?.total ?? rawData?.total ?? list.length);
         setRegistrations(list);
-        setTotalRecords(total);
       } else {
         setError(result.error || 'Gagal memuat data');
       }
@@ -226,6 +234,16 @@ export default function RekapitulasiWidget() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      const res = await getParameters();
+      if (res.success) {
+        setTindakanOptions(res.data.filter((p: Parameter) => p.param_type === 'TINDAKAN_OPERASI' && p.is_active));
+      }
+    };
+    fetchOptions();
+  }, []);
 
   const selectStyle: React.CSSProperties = {
     padding: '8px 12px',
@@ -516,8 +534,9 @@ export default function RekapitulasiWidget() {
                     'KELAS',
                     "NOMOR TELP 1 (WA)",
                     "NOMOR TELP 2 (WA)",
-                    'CATATAN',
+                    'TINDAKAN OPERASI',
                     'KLASIFIKASI OPERASI',
+                    'CATATAN',
                     'AKSI',
                   ].map((h) => (
                     <th
@@ -628,7 +647,6 @@ export default function RekapitulasiWidget() {
                     <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#0f172a', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }} title={reg.diagnosis}>
                       {reg.diagnosis}
                     </td>
-                    {/* RENCANA TINDAKAN */}
                     <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#0f172a', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }} title={reg.rencana_tindakan}>
                       {reg.rencana_tindakan}
                     </td>
@@ -656,9 +674,8 @@ export default function RekapitulasiWidget() {
                     <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#334155', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }}>
                       {reg.nomor_telp_2 || <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
-                    {/* CATATAN */}
-                    <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#475569', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }} title={reg.catatan}>
-                      {reg.catatan || <span style={{ color: '#cbd5e1' }}>—</span>}
+                    <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#0f172a', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }} title={reg.tindakan_operasi || ''}>
+                      {reg.tindakan_operasi || <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
                     {/* KLASIFIKASI OPERASI */}
                     <td style={{ padding: '13px 16px', fontSize: '0.82rem', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }}>
@@ -685,6 +702,10 @@ export default function RekapitulasiWidget() {
                       ) : (
                         <span style={{ color: '#cbd5e1' }}>—</span>
                       )}
+                    </td>
+                    {/* CATATAN */}
+                    <td style={{ padding: '13px 16px', fontSize: '0.82rem', color: '#475569', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #f1f5f9' }} title={reg.catatan}>
+                      {reg.catatan || <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
                     {/* AKSI */}
                     <td style={{ padding: '13px 16px', whiteSpace: 'nowrap', textAlign: 'center' }}>
@@ -743,10 +764,37 @@ export default function RekapitulasiWidget() {
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '1.5rem' }}>
-                Edit Catatan & Klasifikasi Operasi
+                Edit Tindakan, Klasifikasi & Catatan Operasi
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Tindakan Operasi */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>
+                    Tindakan Operasi
+                  </label>
+                  <select
+                    value={editFormData.tindakan_operasi}
+                    onChange={(e) => setEditFormData({ ...editFormData, tindakan_operasi: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.875rem',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="">-- Pilih Tindakan Operasi --</option>
+                    {tindakanOptions.map((opt) => (
+                      <option key={opt.id} value={opt.param_name}>{opt.param_name}</option>
+                    ))}
+                    {!tindakanOptions.some(opt => opt.param_name === editFormData.tindakan_operasi) && editFormData.tindakan_operasi && (
+                      <option value={editFormData.tindakan_operasi}>{editFormData.tindakan_operasi}</option>
+                    )}
+                  </select>
+                </div>
+
                 {/* Klasifikasi Operasi */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>

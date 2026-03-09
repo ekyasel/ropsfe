@@ -25,7 +25,7 @@ const FEATURES = [
     num: "02",
     title: "Manajemen Personel",
     description:
-      "Pengelolaan data staf, dokter spesialis, ruang rawat inap, poli, penjamin dan kelas.",
+      "Pengelolaan data staf, dokter spesialis, ruang rawat inap, ruangan asal, penjamin dan kelas.",
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

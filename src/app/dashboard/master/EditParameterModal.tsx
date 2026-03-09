@@ -75,7 +75,7 @@ export default function EditParameterModal({ isOpen, onClose, parameter, onSucce
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Edit Master Data</h2>
-            <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Perbarui informasi item {parameter.param_type.toLowerCase().replace(/_/g, ' ')}</p>
+            <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Perbarui informasi item {parameter.param_type === 'POLI' ? 'ruangan asal' : parameter.param_type.toLowerCase().replace(/_/g, ' ')}</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -84,7 +84,7 @@ export default function EditParameterModal({ isOpen, onClose, parameter, onSucce
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>NAMA {parameter.param_type.replace(/_/g, ' ')}</label>
+            <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>NAMA {parameter.param_type === 'POLI' ? 'RUANGAN ASAL' : parameter.param_type.replace(/_/g, ' ')}</label>
             <input 
               name="param_name" 
               type="text" 

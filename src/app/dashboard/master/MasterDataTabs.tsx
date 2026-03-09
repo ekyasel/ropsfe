@@ -11,7 +11,8 @@ const TABS = [
   { id: 'DOKTER_ANESTESI', label: 'Dokter Anestesi' },
   { id: 'RUANG_OPERASI', label: 'Ruang Operasi' },
   { id: 'RUANG_RAWAT_INAP', label: 'Ruang Rawat Inap' },
-  { id: 'POLI', label: 'Poli' },
+  { id: 'POLI', label: 'Ruangan Asal' },
+  { id: 'TINDAKAN_OPERASI', label: 'Tindakan Operasi' },
   { id: 'PENJAMIN', label: 'Penjamin' },
   { id: 'KELAS', label: 'Kelas' },
 ];

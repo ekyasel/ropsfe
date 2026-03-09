@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getRegistrations, getParameters } from '../actions/auth';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Parameter {
   id: string;
@@ -26,6 +28,7 @@ interface Registration {
   umur_tahun: string;
   jenis_kelamin: string;
   nomor_telp_1: string;
+  nomor_telp_2?: string;
   penjamin: string;
   kelas: string;
   ruang_operasi?: string;
@@ -38,6 +41,7 @@ export default function SurgeryCalendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Registration | null>(null);
+  const [showFullscreenTimeline, setShowFullscreenTimeline] = useState(false);
 
   const loadMonthData = useCallback(async () => {
     // Fetch a broad range to cover the month view (e.g. 1st to 31st)
@@ -211,11 +215,8 @@ export default function SurgeryCalendar() {
     );
   };
 
-  const renderTimeline = () => {
-    const hours = Array.from({ length: 24 }, (_, i) => i); // 00:00 to 23:00
-    const dayName = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
-    
-    // Filter registrations for selected date
+  const renderTimelineContent = (isFullScreen = false) => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
     const dayEvents = registrations.filter(r => {
       const regDate = new Date(r.tanggal_rencana_operasi);
       return regDate.getDate() === selectedDate.getDate() && 
@@ -223,95 +224,247 @@ export default function SurgeryCalendar() {
              regDate.getFullYear() === selectedDate.getFullYear();
     });
 
-    // Determine columns: use ruangOperasis from master data, and always prepend "Belum Teralokasi"
     const colList = [
       { id: 'unassigned', param_name: 'Belum Teralokasi' },
       ...ruangOperasis
     ] as Parameter[];
 
+    const columnWidth = isFullScreen ? 220 : 180;
+
     return (
-      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ marginBottom: '1.25rem' }}>
-          <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Timeline Operasi</h3>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{dayName}</h2>
+      <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', minWidth: `${colList.length * columnWidth + 60}px`, borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5 }}>
+          <div style={{ width: '60px' }}></div>
+          {colList.map(col => (
+            <div key={col.id} style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
+              {col.param_name}
+            </div>
+          ))}
         </div>
 
-        <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', minWidth: `${colList.length * 180 + 60}px`, borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5 }}>
-            <div style={{ width: '60px' }}></div>
-            {colList.map(col => (
-              <div key={col.id} style={{ flex: 1, textAlign: 'center', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
-                {col.param_name}
-              </div>
-            ))}
-          </div>
+        <div style={{ flex: 1, overflowY: 'auto', minWidth: `${colList.length * columnWidth + 60}px` }}>
+          {hours.map(hour => {
+            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+            
+            return (
+              <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: isFullScreen ? '80px' : '80px' }}>
+                <div style={{ width: '60px', fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
+                  {timeStr}
+                </div>
+                {colList.map(col => {
+                  const eventsInCell = dayEvents.filter(e => {
+                    if (!e.jam_rencana_operasi) {
+                      return hour === 0 && col.id === 'unassigned';
+                    }
+                    return e.jam_rencana_operasi.substring(0, 2) === hour.toString().padStart(2, '0') &&
+                      (e.ruang_operasi === col.param_name || (!e.ruang_operasi && col.id === 'unassigned'));
+                  });
 
-          <div style={{ flex: 1, overflowY: 'auto', minWidth: `${colList.length * 180 + 60}px` }}>
-            {hours.map(hour => {
-              const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-              
-              return (
-                <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: '80px' }}>
-                  <div style={{ width: '60px', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
-                    {timeStr}
-                  </div>
-                  {colList.map(col => {
-                    const eventsInCell = dayEvents.filter(e => 
-                      e.jam_rencana_operasi.substring(0, 2) === hour.toString().padStart(2, '0') &&
-                      (e.ruang_operasi === col.param_name || (!e.ruang_operasi && col.id === 'unassigned'))
-                    );
-
-                    return (
-                      <div key={col.id} style={{ flex: 1, padding: '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
-                        {eventsInCell.map(event => (
-                          <div 
-                            key={event.id}
-                            onClick={() => handleEventClick(event)}
-                            style={{
-                              padding: '6px 8px',
-                              borderRadius: '6px',
-                              backgroundColor: event.jenis_operasi === 'CITO' ? '#fff1f2' : '#f0f9ff',
-                              borderLeft: `3px solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
-                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                              cursor: 'pointer'
-                            }}
-                            className="event-card"
-                          >
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' }}>
-                                  {event.jenis_operasi}
-                                </span>
-                                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94a3b8' }}>{event.jam_rencana_operasi.substring(0, 5)}</span>
+                  return (
+                    <div key={col.id} style={{ flex: 1, padding: '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
+                      {eventsInCell.map(event => (
+                        <div 
+                          key={event.id}
+                          onClick={() => handleEventClick(event)}
+                          style={{
+                            padding: isFullScreen ? '4px 8px' : '8px 10px',
+                            borderRadius: '8px',
+                            backgroundColor: event.jenis_operasi === 'CITO' ? '#fff1f2' : '#f0f9ff',
+                            borderLeft: `4px solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            cursor: 'pointer'
+                          }}
+                          className="event-card"
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: isFullScreen ? '1px' : '3px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9', backgroundColor: event.jenis_operasi === 'CITO' ? '#fee2e2' : '#e0f2fe', padding: '1px 4px', borderRadius: '4px' }}>
+                                {event.jenis_operasi}
+                              </span>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}</span>
+                            </div>
+                            <div style={{ fontWeight: 800, fontSize: isFullScreen ? '0.9rem' : '0.85rem', color: '#0f172a' }}>
+                              {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun}th</span>
+                            </div>
+                            <div style={{ fontSize: isFullScreen ? '0.75rem' : '0.8rem', fontWeight: 600, color: '#475569', lineHeight: '1.4', marginTop: isFullScreen ? '0px' : '2px' }}>
+                              {event.rencana_tindakan}
+                            </div>
+                            <div style={{ marginTop: isFullScreen ? '2px' : '6px', paddingTop: isFullScreen ? '2px' : '6px', borderTop: '1px dashed #e2e8f0' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>
+                                dr. {event.dokter_operator}
                               </div>
-                              <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1e293b' }}>
-                                {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun}th</span>
-                              </div>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', lineHeight: '1.3', marginTop: '1px' }}>
-                                {event.rencana_tindakan}
-                              </div>
-                              <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #e2e8f0' }}>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#475569' }}>
-                                  dr. {event.dokter_operator}
-                                </div>
-                                <div style={{ fontSize: '0.6rem', fontWeight: 600, color: '#94a3b8' }}>
-                                  Anestesi: {event.dokter_anestesi || '-'}
-                                </div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b', marginTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
-                                  <span>{event.penjamin}</span>
-                                  <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
-                                </div>
+                              <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
+                                <span>Anestesi: {event.dokter_anestesi || '-'}</span>
+                                <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTimeline = () => {
+    const dayName = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+    
+    return (
+      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Timeline Operasi</h3>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{dayName}</h2>
           </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={handleDownloadPDF}
+              className="button-secondary"
+              style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Download PDF"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            </button>
+            <button 
+              onClick={() => setShowFullscreenTimeline(true)}
+              className="button-secondary"
+              style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Layar Penuh"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6"></path><path d="M9 21H3v-6"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        {renderTimelineContent()}
+      </div>
+    );
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const dayName = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const dayEvents = [...registrations]
+      .filter(r => {
+        const regDate = new Date(r.tanggal_rencana_operasi);
+        return regDate.getDate() === selectedDate.getDate() && 
+               regDate.getMonth() === selectedDate.getMonth() && 
+               regDate.getFullYear() === selectedDate.getFullYear();
+      })
+      .sort((a, b) => (a.jam_rencana_operasi || '00:00').localeCompare(b.jam_rencana_operasi || '00:00'));
+
+    // Header
+    doc.setFontSize(18);
+    doc.text('JADWAL RENCANA OPERASI', 148.5, 15, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text(dayName, 148.5, 22, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Unit Ruang Operasi RSSB - SORA v1.0', 148.5, 28, { align: 'center' });
+    
+    doc.setDrawColor(15, 23, 42);
+    doc.setLineWidth(0.5);
+    doc.line(15, 32, 282, 32);
+
+    // Table
+    const tableData = dayEvents.map((event, index) => [
+      index + 1,
+      `${event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}${event.jenis_operasi === 'CITO' ? '\n(CITO)' : ''}`,
+      `${event.nama_pasien}\nRM: ${event.no_rekam_medis}\n${event.umur_tahun}th / ${event.jenis_kelamin}`,
+      `${event.ruang_operasi || 'BELUM TERALOKASI'}\n${event.kelas}`,
+      `${event.rencana_tindakan}\nDx: ${event.diagnosis}`,
+      `dr. ${event.dokter_operator}\nAnes: ${event.dokter_anestesi || '-'}`,
+      event.penjamin
+    ]);
+
+    autoTable(doc, {
+      startY: 38,
+      head: [['No', 'Jam', 'Pasien', 'Ruang / Kelas', 'Tindakan & Diagnosa', 'Tim Medis', 'Penjamin']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], halign: 'center' },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 10 },
+        1: { halign: 'center', cellWidth: 20 },
+        2: { cellWidth: 45 },
+        3: { halign: 'center', cellWidth: 35 },
+        5: { cellWidth: 40 },
+        6: { halign: 'center', cellWidth: 25 }
+      }
+    });
+
+    // Signature
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    const dateStr = `Sidoarjo, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(dateStr, 240, finalY, { align: 'center' });
+    doc.text('Petugas Ruang Operasi', 240, finalY + 7, { align: 'center' });
+    doc.line(210, finalY + 30, 270, finalY + 30);
+
+    const fileName = `Jadwal_Operasi_${selectedDate.toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+  };
+
+  const renderFullscreenTimelineModal = () => {
+    if (!showFullscreenTimeline) return null;
+    const dayName = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        zIndex: 2000,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '20px'
+      }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f1f5f9' }}>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.025em' }}>Timeline Operasi</h1>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>{dayName}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }} className="no-print">
+            <button 
+              onClick={handleDownloadPDF}
+              className="button-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Download PDF
+            </button>
+            <button 
+              onClick={() => setShowFullscreenTimeline(false)}
+              className="no-print"
+              style={{ backgroundColor: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '10px', cursor: 'pointer', color: '#64748b' }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          {renderTimelineContent(true)}
+        </div>
+        
+        <div style={{ marginTop: '15px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', fontWeight: 600 }} className="no-print">
+          Unit Ruang Operasi RSSB - SORA v1.0
         </div>
       </div>
     );
@@ -324,9 +477,10 @@ export default function SurgeryCalendar() {
       { label: 'No. Rekam Medis', value: selectedEvent.no_rekam_medis },
       { label: 'Nama Pasien', value: selectedEvent.nama_pasien },
       { label: 'Umur / JK', value: `${selectedEvent.umur_tahun} th / ${selectedEvent.jenis_kelamin}` },
+      { label: 'Nomor Telp Pasien', value: selectedEvent.nomor_telp_2 ? `${selectedEvent.nomor_telp_1} / ${selectedEvent.nomor_telp_2}` : selectedEvent.nomor_telp_1 },
       { label: 'Diagnosis', value: selectedEvent.diagnosis },
       { label: 'Rencana Tindakan', value: selectedEvent.rencana_tindakan },
-      { label: 'Jadwal', value: `${selectedEvent.tanggal_rencana_operasi} Pkl ${selectedEvent.jam_rencana_operasi.substring(0, 5)}` },
+      { label: 'Jadwal', value: `${selectedEvent.tanggal_rencana_operasi} Pkl ${selectedEvent.jam_rencana_operasi ? selectedEvent.jam_rencana_operasi.substring(0, 5) : '-'}` },
       { label: 'Ruang Operasi', value: selectedEvent.ruang_operasi || '-' },
       { label: 'Jenis Operasi', value: selectedEvent.jenis_operasi, color: selectedEvent.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' },
       { label: 'Dokter Operator', value: `dr. ${selectedEvent.dokter_operator}` },
@@ -348,7 +502,7 @@ export default function SurgeryCalendar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
+        zIndex: 3000,
         padding: '20px'
       }} onClick={() => setShowDetailModal(false)}>
         <div style={{
@@ -410,6 +564,7 @@ export default function SurgeryCalendar() {
       {renderCalendar()}
       {renderTimeline()}
       {renderDetailModal()}
+      {renderFullscreenTimelineModal()}
 
       <style jsx>{`
         @media (max-width: 1024px) {

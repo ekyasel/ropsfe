@@ -50,7 +50,8 @@ export default function AddParameterModal({ isOpen, onClose, paramType, onSucces
       case 'DOKTER_ANESTESI': return 'Nama Dokter Anestesi';
       case 'RUANG_OPERASI': return 'Nama Ruang Operasi';
       case 'RUANG_RAWAT_INAP': return 'Nama Ruang';
-      case 'POLI': return 'Nama Poli';
+      case 'POLI': return 'Nama Ruangan Asal';
+      case 'TINDAKAN_OPERASI': return 'Nama Tindakan Operasi';
       case 'PENJAMIN': return 'Nama Penjamin';
       case 'KELAS': return 'Nama Kelas';
       default: return 'Nama Item';
@@ -80,7 +81,7 @@ export default function AddParameterModal({ isOpen, onClose, paramType, onSucces
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Tambah {paramType.replace(/_/g, ' ')}</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Tambah {paramType === 'POLI' ? 'RUANGAN ASAL' : paramType.replace(/_/g, ' ')}</h2>
             <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Tambahkan data master baru ke sistem</p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
@@ -95,7 +96,7 @@ export default function AddParameterModal({ isOpen, onClose, paramType, onSucces
               name="param_name" 
               type="text" 
               required 
-              placeholder={`Contoh: ${paramType === 'DOKTER' ? 'dr. Ahmad Sp.B' : paramType === 'RUANG_OPERASI' ? 'OK 1' : 'Gedung A'}`}
+              placeholder={`Contoh: ${paramType === 'DOKTER' ? 'dr. Ahmad Sp.B' : paramType === 'TINDAKAN_OPERASI' ? 'Eksisi' : paramType === 'RUANG_OPERASI' ? 'OK 1' : 'Gedung A'}`}
               style={{
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',

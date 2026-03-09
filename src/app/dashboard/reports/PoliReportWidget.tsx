@@ -51,7 +51,7 @@ export default function PoliReportWidget() {
           }
         } else {
           setLoading(false);
-          setError("Tidak ada data Poli yang aktif di Master Data");
+          setError("Tidak ada data Ruangan Asal yang aktif di Master Data");
         }
       } else {
         setError(result.error || "Gagal memuat daftar poli");
@@ -114,15 +114,15 @@ export default function PoliReportWidget() {
     if (data.length === 0) return;
     const ws = xlsx.utils.json_to_sheet(data);
     const wb = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(wb, ws, "Laporan Poli");
-    xlsx.writeFile(wb, `Laporan_Poli_${selectedPoli}_${selectedYear}.xlsx`);
+    xlsx.utils.book_append_sheet(wb, ws, "Laporan Ruangan Asal");
+    xlsx.writeFile(wb, `Laporan_Ruangan_Asal_${selectedPoli}_${selectedYear}.xlsx`);
   };
 
   if (loading && poliList.length === 0) {
     return (
       <div className="card" style={{ padding: '4rem', backgroundColor: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
         <div style={{ width: '40px', height: '40px', border: '4px solid #f1f5f9', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-        <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Memuat konfigurasi poli...</p>
+        <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Memuat konfigurasi ruangan asal...</p>
         <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
       </div>
     );
@@ -133,8 +133,8 @@ export default function PoliReportWidget() {
       {/* Header */}
       <div style={{ padding: '1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Laporan Per Unit/Poli</h2>
-          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Rincian pasien berdasarkan elektif & cito per poli</p>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Laporan Per Unit/Ruangan Asal</h2>
+          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Rincian pasien berdasarkan elektif & cito per ruangan asal</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <button 
@@ -147,7 +147,7 @@ export default function PoliReportWidget() {
           </button>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Poli:</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Ruangan Asal:</span>
             <select 
               value={selectedPoli} 
               onChange={(e) => setSelectedPoli(e.target.value)}

@@ -149,7 +149,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
         const headers = [
           "Dibuat Pada", "No. RM", "Nama Pasien", "Umur", "JK", "Tgl Operasi", "Jam", "Ruang Operasi", 
           "Diagnosis", "Rencana Tindakan", "Dokter Operator", "Dokter Anestesi",
-          "Jenis Operasi", "Asal Poli", "Ruang Rawat", "Kelas", "Penjamin"
+          "Jenis Operasi", "Ruangan Asal", "Ruang Rawat", "Kelas", "Penjamin"
         ];
 
         const csvRows = [headers.join(",")];

@@ -288,7 +288,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                   <div className="form-group">
                     <label>ASAL PENDAFTARAN</label>
                     <select name="pendaftaran_dari" required disabled={fetchingParams} defaultValue={initialData?.pendaftaran_dari} key={fetchingParams ? 'loading-poli' : 'loaded-poli'}>
-                      <option value="">Pilih Poli</option>
+                      <option value="">Pilih Ruangan Asal</option>
                       {polis.map(p => (
                         <option key={p.id} value={p.param_name}>{p.param_name}</option>
                       ))}
