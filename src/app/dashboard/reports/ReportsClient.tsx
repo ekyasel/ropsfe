@@ -5,6 +5,7 @@ import MonthlyReportWidget from './MonthlyReportWidget';
 import InsuranceReportWidget from './InsuranceReportWidget';
 import PoliReportWidget from './PoliReportWidget';
 import RekapitulasiWidget from './RekapitulasiWidget';
+import DoctorSurgeryReportWidget from './DoctorSurgeryReportWidget';
 
 type Tab = 'summary' | 'rekapitulasi';
 
@@ -63,6 +64,7 @@ export default function ReportsClient() {
             <MonthlyReportWidget />
             <InsuranceReportWidget />
             <PoliReportWidget />
+            <DoctorSurgeryReportWidget />
           </div>
         )}
 

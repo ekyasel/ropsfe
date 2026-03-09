@@ -746,3 +746,44 @@ export async function getCronLogs(
     return { error: `Koneksi ke server API gagal: ${errorMessage}` };
   }
 }
+export async function getDoctorSurgeryCount(year: string, dokter: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  const apiUrl = process.env.API_URL || "http://localhost:3002";
+
+  const url = `${apiUrl}/api/report/doctor-surgery-count?year=${year}&dokter=${encodeURIComponent(dokter)}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+
+    if (!response.ok) {
+      return {
+        error:
+          data.error ||
+          data.message ||
+          "Gagal mengambil data laporan tindakan dokter",
+      };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Error tidak diketahui";
+    console.error("Fetch Doctor Surgery Count Error:", err);
+    return { error: `Koneksi ke server API gagal: ${errorMessage}` };
+  }
+}
