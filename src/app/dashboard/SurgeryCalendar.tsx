@@ -264,23 +264,23 @@ export default function SurgeryCalendar() {
     const rowHeight = isFullScreen ? baseRowHeight * timelineZoom : baseRowHeight;
 
     return (
-      <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', minWidth: `${colList.length * columnWidth + 60}px`, borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5 }}>
-          <div style={{ width: '60px' }}></div>
+      <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <div style={{ display: 'flex', borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5, width: '100%', minWidth: 'min-content' }}>
+          <div style={{ width: '60px', flexShrink: 0 }}></div>
           {colList.map(col => (
-            <div key={col.id} style={{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
+            <div key={col.id} style={{ flex: 1, minWidth: `${columnWidth}px`, textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
               {col.param_name}
             </div>
           ))}
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', minWidth: `${colList.length * columnWidth + 60}px` }}>
+        <div style={{ flex: 1, overflowY: 'auto', width: '100%', minWidth: 'min-content' }}>
           {hours.map(hour => {
             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
             
             return (
-              <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: `${rowHeight}px` }}>
-                <div style={{ width: '60px', fontSize: timelineZoom < 0.7 ? '0.6rem' : '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
+              <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: `${rowHeight}px`, width: '100%' }}>
+                <div style={{ width: '60px', flexShrink: 0, fontSize: timelineZoom < 0.7 ? '0.6rem' : '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
                   {timeStr}
                 </div>
                 {colList.map(col => {
@@ -293,7 +293,7 @@ export default function SurgeryCalendar() {
                   });
 
                   return (
-                    <div key={col.id} style={{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, padding: timelineZoom < 0.8 ? '2px 4px' : '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
+                    <div key={col.id} style={{ flex: 1, minWidth: `${columnWidth}px`, padding: timelineZoom < 0.8 ? '2px 4px' : '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
                       {eventsInCell.map(event => (
                         <div 
                           key={event.id}
