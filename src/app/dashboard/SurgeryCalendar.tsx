@@ -43,6 +43,7 @@ export default function SurgeryCalendar() {
   const [selectedEvent, setSelectedEvent] = useState<Registration | null>(null);
   const [showFullscreenTimeline, setShowFullscreenTimeline] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [timelineZoom, setTimelineZoom] = useState(1.0);
 
   const loadMonthData = useCallback(async () => {
     // Fetch a broad range to cover the month view (e.g. 1st to 31st)
@@ -255,14 +256,19 @@ export default function SurgeryCalendar() {
       ...ruangOperasis
     ] as Parameter[];
 
-    const columnWidth = isFullScreen ? 220 : 180;
+    const baseWidth = isFullScreen ? 220 : 180;
+    const columnWidth = isFullScreen ? baseWidth * timelineZoom : baseWidth;
+    
+    // Calculate row height based on zoom
+    const baseRowHeight = isFullScreen ? 80 : 80;
+    const rowHeight = isFullScreen ? baseRowHeight * timelineZoom : baseRowHeight;
 
     return (
       <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', minWidth: `${colList.length * columnWidth + 60}px`, borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 5 }}>
           <div style={{ width: '60px' }}></div>
           {colList.map(col => (
-            <div key={col.id} style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
+            <div key={col.id} style={{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '0 10px' }}>
               {col.param_name}
             </div>
           ))}
@@ -273,8 +279,8 @@ export default function SurgeryCalendar() {
             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
             
             return (
-              <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: isFullScreen ? '80px' : '80px' }}>
-                <div style={{ width: '60px', fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
+              <div key={hour} style={{ display: 'flex', borderBottom: '1px solid #f8fafc', minHeight: `${rowHeight}px` }}>
+                <div style={{ width: '60px', fontSize: timelineZoom < 0.7 ? '0.6rem' : '0.7rem', fontWeight: 800, color: '#94a3b8', paddingTop: '10px', textAlign: 'center', backgroundColor: '#fdfdfd', borderRight: '1px solid #f1f5f9' }}>
                   {timeStr}
                 </div>
                 {colList.map(col => {
@@ -287,47 +293,54 @@ export default function SurgeryCalendar() {
                   });
 
                   return (
-                    <div key={col.id} style={{ flex: 1, padding: '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
+                    <div key={col.id} style={{ width: `${columnWidth}px`, minWidth: `${columnWidth}px`, padding: timelineZoom < 0.8 ? '2px 4px' : '6px', borderRight: '1px solid #f8fafc', display: 'flex', flexDirection: 'column', gap: '0.4rem', backgroundColor: eventsInCell.length > 0 ? '#fff' : 'transparent' }}>
                       {eventsInCell.map(event => (
                         <div 
                           key={event.id}
                           onClick={() => handleEventClick(event)}
                           style={{
-                            padding: isFullScreen ? '4px 8px' : '8px 10px',
+                            padding: isFullScreen ? (timelineZoom < 0.8 ? '2px 4px' : '4px 8px') : '8px 10px',
                             borderRadius: '8px',
                             backgroundColor: event.jenis_operasi === 'CITO' ? '#fff1f2' : '#f0f9ff',
-                            borderLeft: `4px solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
+                            borderLeft: `${timelineZoom < 0.6 ? '2px' : '4px'} solid ${event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9'}`,
                             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            overflow: 'hidden'
                           }}
                           className="event-card"
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: isFullScreen ? '1px' : '3px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: isFullScreen ? (timelineZoom < 0.7 ? '0px' : '1px') : '3px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9', backgroundColor: event.jenis_operasi === 'CITO' ? '#fee2e2' : '#e0f2fe', padding: '1px 4px', borderRadius: '4px' }}>
+                              <span style={{ fontSize: timelineZoom < 0.7 ? '0.55rem' : '0.65rem', fontWeight: 800, color: event.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9', backgroundColor: event.jenis_operasi === 'CITO' ? '#fee2e2' : '#e0f2fe', padding: '1px 4px', borderRadius: '4px' }}>
                                 {event.jenis_operasi}
                               </span>
-                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b' }}>{event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}</span>
+                              <span style={{ fontSize: timelineZoom < 0.7 ? '0.55rem' : '0.65rem', fontWeight: 800, color: '#64748b' }}>{event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}</span>
                             </div>
-                            <div style={{ fontWeight: 800, fontSize: isFullScreen ? '0.9rem' : '0.85rem', color: '#0f172a' }}>
+                            <div style={{ fontWeight: 800, fontSize: isFullScreen ? (timelineZoom < 0.7 ? '0.75rem' : '0.9rem') : '0.85rem', color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                               {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun}th</span>
                             </div>
-                            <div style={{ fontSize: isFullScreen ? '0.75rem' : '0.8rem', fontWeight: 600, color: '#475569', lineHeight: '1.4', marginTop: isFullScreen ? '0px' : '2px' }}>
-                              {event.rencana_tindakan}
-                            </div>
-                            <div style={{ fontSize: isFullScreen ? '0.7rem' : '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
-                              Dx: {event.diagnosis}
-                            </div>
-                            <div style={{ marginTop: isFullScreen ? '2px' : '6px', paddingTop: isFullScreen ? '2px' : '6px', borderTop: '1px dashed #e2e8f0' }}>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>dr. {event.dokter_operator}</span>
-                                <span style={{ color: 'var(--accent)', fontSize: '0.65rem' }}>{event.ruangan_rawat_inap}</span>
+                            {timelineZoom >= 0.7 && (
+                              <>
+                                <div style={{ fontSize: isFullScreen ? '0.75rem' : '0.8rem', fontWeight: 600, color: '#475569', lineHeight: '1.4', marginTop: isFullScreen ? '0px' : '2px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                  {event.rencana_tindakan}
+                                </div>
+                                <div style={{ fontSize: isFullScreen ? '0.7rem' : '0.75rem', color: '#64748b', fontStyle: 'italic', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                  Dx: {event.diagnosis}
+                                </div>
+                              </>
+                            )}
+                            {timelineZoom >= 0.9 && (
+                              <div style={{ marginTop: isFullScreen ? '2px' : '6px', paddingTop: isFullScreen ? '2px' : '6px', borderTop: '1px dashed #e2e8f0' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                  <span>dr. {event.dokter_operator}</span>
+                                  <span style={{ color: 'var(--accent)', fontSize: '0.65rem' }}>{event.ruangan_rawat_inap}</span>
+                                </div>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
+                                  <span>Anestesi: {event.dokter_anestesi || '-'}</span>
+                                  <span style={{ color: '#0f172a' }}>{event.kelas}</span>
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-                                <span>Anestesi: {event.dokter_anestesi || '-'}</span>
-                                <span style={{ color: '#0f172a' }}>{event.kelas}</span>
-                              </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -489,6 +502,37 @@ export default function SurgeryCalendar() {
             <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent)' }}>{dayName}</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }} className="no-print">
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: '10px', padding: '4px', gap: '4px' }}>
+              <button 
+                onClick={() => setTimelineZoom(prev => Math.max(0.5, prev - 0.1))}
+                className="button-secondary"
+                style={{ padding: '6px', minWidth: '32px', border: 'none' }}
+                title="Zoom Out"
+              >
+                -
+              </button>
+              <div style={{ padding: '0 4px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', minWidth: '45px', textAlign: 'center' }}>
+                {Math.round(timelineZoom * 100)}%
+              </div>
+              <button 
+                onClick={() => setTimelineZoom(prev => Math.min(2.0, prev + 0.1))}
+                className="button-secondary"
+                style={{ padding: '6px', minWidth: '32px', border: 'none' }}
+                title="Zoom In"
+              >
+                +
+              </button>
+              <div style={{ width: '1px', height: '16px', backgroundColor: '#cbd5e1', margin: '0 2px' }}></div>
+              <button 
+                onClick={() => setTimelineZoom(1.0)}
+                className="button-secondary"
+                style={{ padding: '6px 12px', fontSize: '0.75rem', border: 'none', fontWeight: 700 }}
+                title="Reset Zoom to 100%"
+              >
+                Reset
+              </button>
+            </div>
+            
             <button 
               onClick={handleDownloadPDF}
               className="button-primary"
