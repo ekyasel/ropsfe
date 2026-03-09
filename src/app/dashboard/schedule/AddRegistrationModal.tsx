@@ -174,29 +174,40 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)', borderLeft: '3px solid var(--accent)', paddingLeft: '10px' }}>DATA PASIEN</h3>
                 
-                <div className="form-group">
-                  <label>NAMA PASIEN</label>
-                  <input name="nama_pasien" type="text" required placeholder="Nama Lengkap" defaultValue={initialData?.nama_pasien} />
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label>NO. REKAM MEDIS</label>
-                    <input name="no_rekam_medis" type="text" required placeholder="00-00-00" defaultValue={initialData?.no_rekam_medis} />
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div className="form-group" style={{ flex: 3 }}>
+                    <label>NAMA PASIEN</label>
+                    <input name="nama_pasien" type="text" required placeholder="Nama Lengkap" defaultValue={initialData?.nama_pasien} />
                   </div>
-                  <div className="form-group">
-                    <label>UMUR (TAHUN)</label>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>UMUR (THN)</label>
                     <input name="umur_tahun" type="number" required placeholder="Thn" defaultValue={initialData?.umur_tahun} />
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
+                    <label>NO. REKAM MEDIS</label>
+                    <input name="no_rekam_medis" type="text" required placeholder="00-00-00" defaultValue={initialData?.no_rekam_medis} />
+                  </div>
+                  <div className="form-group">
                     <label>JENIS KELAMIN</label>
                     <select name="jenis_kelamin" required defaultValue={initialData?.jenis_kelamin}>
                       <option value="">Pilih</option>
                       <option value="L">Laki-laki</option>
                       <option value="P">Perempuan</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>PENJAMIN</label>
+                    <select name="penjamin" required disabled={fetchingParams} defaultValue={initialData?.penjamin} key={fetchingParams ? 'loading-penjamin' : 'loaded-penjamin'}>
+                      <option value="">Pilih Penjamin</option>
+                      {penjamins.map(p => (
+                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
@@ -226,6 +237,28 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--accent)', borderLeft: '3px solid var(--accent)', paddingLeft: '10px' }}>RENCANA MEDIS</h3>
                 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>JENIS OPERASI</label>
+                    <select name="jenis_operasi" required defaultValue={initialData?.jenis_operasi}>
+                      <option value="">Pilih Jenis</option>
+                      <option value="ELEKTIF">ELEKTIF</option>
+                      <option value="CITO">CITO</option>
+                    </select>
+                  </div>
+                  {userRole === 'SuperAdmin' && (
+                    <div className="form-group">
+                      <label>RUANG OPERASI</label>
+                      <select name="ruang_operasi" required disabled={fetchingParams} defaultValue={initialData?.ruang_operasi} key={fetchingParams ? 'loading-ruang-operasi' : 'loaded-ruang-operasi'}>
+                        <option value="">Pilih Ruang Operasi</option>
+                        {ruangOperasis.map(p => (
+                          <option key={p.id} value={p.param_name}>{p.param_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label>TANGGAL RENCANA OPERASI</label>
@@ -272,18 +305,6 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                   </div>
                 </div>
 
-                {userRole === 'SuperAdmin' && (
-                  <div className="form-group">
-                    <label>RUANG OPERASI</label>
-                    <select name="ruang_operasi" required disabled={fetchingParams} defaultValue={initialData?.ruang_operasi} key={fetchingParams ? 'loading-ruang-operasi' : 'loaded-ruang-operasi'}>
-                      <option value="">Pilih Ruang Operasi</option>
-                      {ruangOperasis.map(p => (
-                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label>ASAL PENDAFTARAN</label>
@@ -295,32 +316,12 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>PENJAMIN</label>
-                    <select name="penjamin" required disabled={fetchingParams} defaultValue={initialData?.penjamin} key={fetchingParams ? 'loading-penjamin' : 'loaded-penjamin'}>
-                      <option value="">Pilih Penjamin</option>
-                      {penjamins.map(p => (
-                        <option key={p.id} value={p.param_name}>{p.param_name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
                     <label>RUANGAN RAWAT INAP</label>
                     <select name="ruangan_rawat_inap" required disabled={fetchingParams} defaultValue={initialData?.ruangan_rawat_inap} key={fetchingParams ? 'loading-room' : 'loaded-room'}>
                       <option value="">Pilih Ruangan</option>
                       {rooms.map(p => (
                         <option key={p.id} value={p.param_name}>{p.param_name}</option>
                       ))}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>JENIS OPERASI</label>
-                    <select name="jenis_operasi" required defaultValue={initialData?.jenis_operasi}>
-                      <option value="">Pilih Jenis</option>
-                      <option value="ELEKTIF">ELEKTIF</option>
-                      <option value="CITO">CITO</option>
                     </select>
                   </div>
                 </div>
