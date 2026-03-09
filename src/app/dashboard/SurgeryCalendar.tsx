@@ -315,13 +315,17 @@ export default function SurgeryCalendar() {
                             <div style={{ fontSize: isFullScreen ? '0.75rem' : '0.8rem', fontWeight: 600, color: '#475569', lineHeight: '1.4', marginTop: isFullScreen ? '0px' : '2px' }}>
                               {event.rencana_tindakan}
                             </div>
+                            <div style={{ fontSize: isFullScreen ? '0.7rem' : '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                              Dx: {event.diagnosis}
+                            </div>
                             <div style={{ marginTop: isFullScreen ? '2px' : '6px', paddingTop: isFullScreen ? '2px' : '6px', borderTop: '1px dashed #e2e8f0' }}>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>
-                                dr. {event.dokter_operator}
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>dr. {event.dokter_operator}</span>
+                                <span style={{ color: 'var(--accent)', fontSize: '0.65rem' }}>{event.ruangan_rawat_inap}</span>
                               </div>
                               <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
                                 <span>Anestesi: {event.dokter_anestesi || '-'}</span>
-                                <span style={{ color: 'var(--accent)' }}>{event.kelas}</span>
+                                <span style={{ color: '#0f172a' }}>{event.kelas}</span>
                               </div>
                             </div>
                           </div>
