@@ -42,6 +42,7 @@ export default function SurgeryCalendar() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Registration | null>(null);
   const [showFullscreenTimeline, setShowFullscreenTimeline] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const loadMonthData = useCallback(async () => {
     // Fetch a broad range to cover the month view (e.g. 1st to 31st)
@@ -50,6 +51,7 @@ export default function SurgeryCalendar() {
     const startDate = new Date(year, month, 1).toISOString().split('T')[0];
     const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
 
+    setLoading(true);
     try {
       const result = await getRegistrations({
         startDate,
@@ -63,6 +65,8 @@ export default function SurgeryCalendar() {
       }
     } catch (error) {
       console.error("Failed to load calendar data:", error);
+    } finally {
+      setLoading(false);
     }
   }, [currentDate]);
 
@@ -124,8 +128,30 @@ export default function SurgeryCalendar() {
       weeks.push(calendarDays.slice(i, i + 7));
     }
 
+    const LoadingOverlay = () => (
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+        borderRadius: '12px',
+        backdropFilter: 'blur(2px)'
+      }}>
+        <div style={{ width: '32px', height: '32px', border: '3px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+      </div>
+    );
+
     return (
-      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {loading && <LoadingOverlay />}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{monthName} {year}</h2>
           <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -316,7 +342,24 @@ export default function SurgeryCalendar() {
     const dayName = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
     
     return (
-      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="card" style={{ padding: '1.25rem', backgroundColor: 'white', height: '520px', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        {loading && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            backdropFilter: 'blur(1px)'
+          }}>
+            <div style={{ width: '32px', height: '32px', border: '3px solid #f1f5f9', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          </div>
+        )}
         <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Timeline Operasi</h3>
@@ -406,7 +449,7 @@ export default function SurgeryCalendar() {
     });
 
     // Signature
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    const finalY = ((doc as any).lastAutoTable?.finalY || 38) + 15;
     const dateStr = `Sidoarjo, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     
     doc.setFontSize(10);

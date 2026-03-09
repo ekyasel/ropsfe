@@ -81,7 +81,18 @@ export default function DashboardStats() {
       </div>
       <div>
         <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>{title}</p>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginTop: '0.1rem' }}>{loading ? '...' : value}</h3>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginTop: '0.1rem' }}>
+          {loading ? (
+            <div style={{ 
+              width: '40px', 
+              height: '24px', 
+              backgroundColor: '#f1f5f9', 
+              borderRadius: '4px',
+              animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+            }}></div>
+          ) : value}
+        </h3>
+        {loading && <style dangerouslySetInnerHTML={{ __html: `@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }` }} />}
       </div>
     </div>
   );
