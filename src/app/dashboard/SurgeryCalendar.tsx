@@ -332,7 +332,7 @@ export default function SurgeryCalendar() {
                             {timelineZoom >= 0.9 && (
                               <div style={{ marginTop: isFullScreen ? '2px' : '6px', paddingTop: isFullScreen ? '2px' : '6px', borderTop: '1px dashed #e2e8f0' }}>
                                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
-                                  <span>dr. {event.dokter_operator}</span>
+                                  <span>{event.dokter_operator}</span>
                                   <span style={{ color: 'var(--accent)', fontSize: '0.65rem' }}>{event.ruangan_rawat_inap}</span>
                                 </div>
                                 <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
@@ -444,7 +444,7 @@ export default function SurgeryCalendar() {
       `${event.nama_pasien}\nRM: ${event.no_rekam_medis}\n${event.umur_tahun}th / ${event.jenis_kelamin}`,
       `${event.ruang_operasi || 'BELUM TERALOKASI'}\n${event.kelas}`,
       `${event.rencana_tindakan}\nDx: ${event.diagnosis}`,
-      `dr. ${event.dokter_operator}\nAnes: ${event.dokter_anestesi || '-'}`,
+      `${event.dokter_operator}\nAnes: ${event.dokter_anestesi || '-'}`,
       event.penjamin
     ]);
 
@@ -574,8 +574,8 @@ export default function SurgeryCalendar() {
       { label: 'Jadwal', value: `${selectedEvent.tanggal_rencana_operasi} Pkl ${selectedEvent.jam_rencana_operasi ? selectedEvent.jam_rencana_operasi.substring(0, 5) : '-'}` },
       { label: 'Ruang Operasi', value: selectedEvent.ruang_operasi || '-' },
       { label: 'Jenis Operasi', value: selectedEvent.jenis_operasi, color: selectedEvent.jenis_operasi === 'CITO' ? '#e11d48' : '#0ea5e9' },
-      { label: 'Dokter Operator', value: `dr. ${selectedEvent.dokter_operator}` },
-      { label: 'Dokter Anestesi', value: selectedEvent.dokter_anestesi ? `dr. ${selectedEvent.dokter_anestesi}` : '-' },
+      { label: 'Dokter Operator', value: selectedEvent.dokter_operator },
+      { label: 'Dokter Anestesi', value: selectedEvent.dokter_anestesi || '-' },
       { label: 'Pendaftaran Pasien Dari', value: selectedEvent.pendaftaran_dari },
       { label: 'Ruangan Rawat Inap', value: selectedEvent.ruangan_rawat_inap },
       { label: 'Penjamin', value: `${selectedEvent.penjamin} (${selectedEvent.kelas})` },
