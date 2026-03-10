@@ -787,3 +787,59 @@ export async function getDoctorSurgeryCount(year: string, dokter: string) {
     return { error: `Koneksi ke server API gagal: ${errorMessage}` };
   }
 }
+export async function getDoctorYearlySummary(year: string, dokter: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  const apiUrl = process.env.API_URL || "http://localhost:3002";
+
+  const url = `${apiUrl}/api/report/yearly-summary-doctor?year=${year}&dokter=${encodeURIComponent(dokter)}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+
+    if (!response.ok) {
+      return {
+        error:
+          data.error || data.message || "Gagal mengambil data laporan dokter",
+      };
+    }
+
+    // Transform uppercase keys to lowercase for the widget
+    if (Array.isArray(data)) {
+      data = data.map(
+        (item: {
+          BULAN: string;
+          ELEKTIF: number;
+          CITO: number;
+          JUMLAH: number;
+        }) => ({
+          bulan: item.BULAN,
+          elektif: item.ELEKTIF,
+          cito: item.CITO,
+          jumlah: item.JUMLAH,
+        }),
+      );
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Error tidak diketahui";
+    console.error("Fetch Doctor Report Error:", err);
+    return { error: `Koneksi ke server API gagal: ${errorMessage}` };
+  }
+}
