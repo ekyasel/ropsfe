@@ -18,6 +18,9 @@ export function middleware(request: NextRequest) {
     // RBAC: Admin and Farmasi can only access dashboard and schedule
     if (userRole === "Admin" || userRole === "Farmasi") {
       const allowedPaths = ["/dashboard", "/dashboard/schedule"];
+      if (userRole === "Admin") {
+        allowedPaths.push("/dashboard/reports");
+      }
       // If the current path is NOT an allowed path and NOT a subpath of an allowed path (except /dashboard itself which should match exactly or be /dashboard/schedule)
       // Actually simpler: if it starts with restricted paths or isn't starting with allowed ones.
       // Let's use a clear check:

@@ -30,6 +30,10 @@ export default function Sidebar({ userName, userRole, logoutAction, isCollapsed,
 
   const filteredMenuItems = userRole === 'SuperAdmin' 
     ? menuItems 
+    : userRole === 'Admin'
+    ? menuItems.filter(item => 
+        ['Beranda', 'Jadwal Operasi', 'Laporan'].includes(item.title)
+      )
     : menuItems.filter(item => 
         item.href === '/dashboard' || item.href === '/dashboard/schedule'
       );

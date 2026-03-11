@@ -251,9 +251,44 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
     );
   };
 
+  const unassignedCount = registrations.filter(r => !r.ruang_operasi || !r.jam_rencana_operasi).length;
+
   return (
     <>
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      
+      {/* Unassigned Data Alert for SuperAdmin */}
+      {unassignedCount > 0 && userRole === 'SuperAdmin' && (
+        <div style={{ 
+          padding: '1rem 1.5rem', 
+          backgroundColor: '#eff6ff', 
+          border: '1px solid #dbeafe', 
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          marginBottom: '0.5rem'
+        }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            borderRadius: '50%', 
+            backgroundColor: '#3b82f6', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: 'white',
+            flexShrink: 0
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e40af' }}>Info: Ada Pendaftaran Baru</h4>
+            <p style={{ fontSize: '0.85rem', color: '#1e3a8a' }}>Terdapat <span style={{ fontWeight: 800 }}>{unassignedCount}</span> pendaftaran yang belum ditentukan Ruang Operasi dan Jam Rencana Operasi.</p>
+          </div>
+        </div>
+      )}
+
       {/* Filter Section */}
       <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'white', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'flex-end', border: '1px solid #e2e8f0' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -372,9 +407,33 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map((reg) => (
-                    <tr key={reg.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} className="table-row-hover">
-                      <td style={{ padding: '18px 20px' }}>
+                  {registrations.map((reg) => {
+                    const isUnassigned = !reg.ruang_operasi || !reg.jam_rencana_operasi;
+                    return (
+                      <tr key={reg.id} style={{ 
+                        borderBottom: '1px solid #f1f5f9', 
+                        transition: 'background-color 0.2s',
+                        backgroundColor: isUnassigned && userRole === 'SuperAdmin' ? '#fffaf5' : 'transparent'
+                      }} className="table-row-hover">
+                        <td style={{ padding: '18px 20px' }}>
+                          {isUnassigned && userRole === 'SuperAdmin' && (
+                            <div style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '4px', 
+                              padding: '2px 8px', 
+                              backgroundColor: '#3b82f6', 
+                              color: 'white', 
+                              borderRadius: '4px', 
+                              fontSize: '0.65rem', 
+                              fontWeight: 800, 
+                              marginBottom: '8px',
+                              textTransform: 'uppercase'
+                            }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                              Belum di Plot
+                            </div>
+                          )}
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                           <span style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 700 }}>
                             {reg.created_at ? new Date(reg.created_at).toLocaleDateString('id-ID', { 
@@ -514,7 +573,8 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                         </td>
                       )}
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>
