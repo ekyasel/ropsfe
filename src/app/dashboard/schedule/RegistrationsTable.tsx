@@ -43,6 +43,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
   // Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
+  const [allUnassignedCount, setAllUnassignedCount] = useState(0);
   
   // Filtering & Pagination State
   const today = new Date().toISOString().split('T')[0];
@@ -94,16 +95,43 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
     }
   }, [startDate, endDate, page, pageSize]);
 
+  const loadUnassignedStats = useCallback(async () => {
+    if (userRole !== 'SuperAdmin') return;
+    
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startStr = thirtyDaysAgo.toISOString().split('T')[0];
+      const endStr = new Date().toISOString().split('T')[0];
+      
+      const result = await getRegistrations({
+        startDate: startStr,
+        endDate: endStr,
+        page: 1,
+        pageSize: 1000 // Grab enough to count
+      });
+      
+      if (result.success) {
+        const data = Array.isArray(result.data) ? result.data : (result.data.data || []);
+        const count = data.filter((r: Registration) => !r.ruang_operasi || !r.jam_rencana_operasi).length;
+        setAllUnassignedCount(count);
+      }
+    } catch (err) {
+      console.error("Failed to load unassigned stats:", err);
+    }
+  }, [userRole]);
+
   useEffect(() => {
     loadData();
-  }, [loadData, refreshKey]);
+    loadUnassignedStats();
+  }, [loadData, loadUnassignedStats, refreshKey]);
 
   const handleEdit = (reg: Registration) => {
     setSelectedReg(reg);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = useCallback(async (id: string, name: string) => {
     const result = await Swal.fire({
       title: 'Hapus Jadwal?',
       text: `Apakah Anda yakin ingin menghapus jadwal operasi untuk pasien ${name}?`,
@@ -127,11 +155,12 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
           showConfirmButton: false
         });
         loadData();
+        loadUnassignedStats();
       } else {
         Swal.fire('Gagal!', deleteResult.error || 'Gagal menghapus data.', 'error');
       }
     }
-  };
+  }, [loadData, loadUnassignedStats]);
 
   const handleExport = async () => {
     setExporting(true);
@@ -251,14 +280,12 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
     );
   };
 
-  const unassignedCount = registrations.filter(r => !r.ruang_operasi || !r.jam_rencana_operasi).length;
-
   return (
     <>
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
       {/* Unassigned Data Alert for SuperAdmin */}
-      {unassignedCount > 0 && userRole === 'SuperAdmin' && (
+      {allUnassignedCount > 0 && userRole === 'SuperAdmin' && (
         <div style={{ 
           padding: '1rem 1.5rem', 
           backgroundColor: '#eff6ff', 
@@ -283,9 +310,33 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
           </div>
           <div style={{ flex: 1 }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e40af' }}>Info: Ada Pendaftaran Baru</h4>
-            <p style={{ fontSize: '0.85rem', color: '#1e3a8a' }}>Terdapat <span style={{ fontWeight: 800 }}>{unassignedCount}</span> pendaftaran yang belum ditentukan Ruang Operasi dan Jam Rencana Operasi.</p>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e40af' }}>Info: Ada Pendaftaran Belum di Plot</h4>
+            <p style={{ fontSize: '0.85rem', color: '#1e3a8a' }}>Terdapat <span style={{ fontWeight: 800 }}>{allUnassignedCount}</span> pendaftaran dalam 30 hari terakhir yang belum ditentukan Ruang Operasi dan Jam Rencana Operasi.</p>
           </div>
+          <button 
+            onClick={() => {
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+              setEndDate(new Date().toISOString().split('T')[0]);
+              setPage(1);
+            }}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+          >
+            Lihat Semua
+          </button>
         </div>
       )}
 
@@ -594,6 +645,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
           }}
           onSuccess={() => {
             loadData();
+            loadUnassignedStats();
           }}
           initialData={selectedReg}
           userRole={userRole}
