@@ -36,7 +36,7 @@ export default function DashboardStats() {
       const result = await getRegistrations({
         startDate: today,
         endDate: today,
-        pageSize: 100
+        pageSize: 10000
       });
 
       if (result.success) {

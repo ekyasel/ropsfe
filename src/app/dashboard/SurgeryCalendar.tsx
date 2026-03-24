@@ -58,7 +58,7 @@ export default function SurgeryCalendar() {
         startDate,
         endDate,
         page: 1,
-        pageSize: 100 // Get all for the month
+        pageSize: 10000 // Get all for the month
       });
 
       if (result.success) {
