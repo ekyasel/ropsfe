@@ -29,7 +29,8 @@ export default function DashboardStats() {
 
   const loadStats = useCallback(async () => {
     setLoading(true);
-    const today = new Date().toISOString().split('T')[0];
+    const _d = new Date();
+    const today = new Date(_d.getTime() - _d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     
     // Fetch registrations for today to get stats
     try {

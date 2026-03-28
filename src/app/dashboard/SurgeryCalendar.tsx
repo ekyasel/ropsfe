@@ -49,8 +49,10 @@ export default function SurgeryCalendar() {
     // Fetch a broad range to cover the month view (e.g. 1st to 31st)
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const startDate = `${year}-${pad(month + 1)}-01`;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const endDate = `${year}-${pad(month + 1)}-${pad(lastDay)}`;
 
     setLoading(true);
     try {
@@ -466,6 +468,7 @@ export default function SurgeryCalendar() {
     });
 
     // Signature
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const finalY = ((doc as any).lastAutoTable?.finalY || 38) + 15;
     const dateStr = `Sidoarjo, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     
@@ -475,7 +478,6 @@ export default function SurgeryCalendar() {
     doc.text('Petugas Ruang Operasi', 240, finalY + 7, { align: 'center' });
     doc.line(210, finalY + 30, 270, finalY + 30);
 
-    const fileName = `Jadwal_Operasi_${selectedDate.toISOString().split('T')[0]}.pdf`;
     // Open PDF in new tab for preview/print instead of direct download
     window.open(doc.output('bloburl'), '_blank');
   };

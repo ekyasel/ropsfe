@@ -30,6 +30,8 @@ interface Registration {
   created_at?: string;
 }
 
+const getLocalISODate = (d: Date = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
 interface RegistrationsTableProps {
   refreshKey: number;
 }
@@ -46,7 +48,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
   const [allUnassignedCount, setAllUnassignedCount] = useState(0);
   
   // Filtering & Pagination State
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalISODate();
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [page, setPage] = useState(1);
@@ -101,8 +103,8 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const startStr = thirtyDaysAgo.toISOString().split('T')[0];
-      const endStr = new Date().toISOString().split('T')[0];
+      const startStr = getLocalISODate(thirtyDaysAgo);
+      const endStr = getLocalISODate();
       
       const result = await getRegistrations({
         startDate: startStr,
@@ -317,8 +319,8 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
             onClick={() => {
               const thirtyDaysAgo = new Date();
               thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-              setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
-              setEndDate(new Date().toISOString().split('T')[0]);
+              setStartDate(getLocalISODate(thirtyDaysAgo));
+              setEndDate(getLocalISODate());
               setPage(1);
             }}
             style={{

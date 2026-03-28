@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { getParameters, createRegistration, updateRegistration } from '../../actions/auth';
 import Swal from 'sweetalert2';
 
+const getLocalISODate = (d: Date = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
 interface Parameter {
   id: string;
   param_type: string;
@@ -266,7 +268,7 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                       name="tanggal_rencana_operasi" 
                       type="date" 
                       required 
-                      defaultValue={initialData?.tanggal_rencana_operasi || new Date().toISOString().split('T')[0]}
+                      defaultValue={initialData?.tanggal_rencana_operasi || getLocalISODate()}
                     />
                   </div>
                   <div className="form-group">
