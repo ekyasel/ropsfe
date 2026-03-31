@@ -56,6 +56,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
   const [pageSize, setPageSize] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
   const [userRole, setUserRole] = useState<string>('');
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   useEffect(() => {
     const role = document.cookie
@@ -229,13 +230,27 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
 
   const totalPages = Math.ceil(totalRecords / pageSize);
 
+  const filteredRegistrations = registrations.filter(reg => {
+    if (!searchKeyword.trim()) return true;
+    const kw = searchKeyword.toLowerCase();
+    return (
+      (reg.nama_pasien && reg.nama_pasien.toLowerCase().includes(kw)) ||
+      (reg.no_rekam_medis && reg.no_rekam_medis.toLowerCase().includes(kw)) ||
+      (reg.dokter_operator && reg.dokter_operator.toLowerCase().includes(kw)) ||
+      (reg.dokter_anestesi && reg.dokter_anestesi.toLowerCase().includes(kw)) ||
+      (reg.rencana_tindakan && reg.rencana_tindakan.toLowerCase().includes(kw)) ||
+      (reg.diagnosis && reg.diagnosis.toLowerCase().includes(kw))
+    );
+  });
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>
-          Menampilkan <span style={{ color: '#0f172a', fontWeight: 700 }}>{registrations.length}</span> dari <span style={{ color: '#0f172a', fontWeight: 700 }}>{totalRecords}</span> data
+          Menampilkan <span style={{ color: '#0f172a', fontWeight: 700 }}>{filteredRegistrations.length}</span> baris
+          {searchKeyword && registrations.length > 0 && <span style={{ fontStyle: 'italic' }}> (difilter dari {registrations.length} data halaman ini)</span>}
         </div>
 
         <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
@@ -345,6 +360,18 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
 
         {/* Filter Section */}
         <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'white', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'flex-end', border: '1px solid #e2e8f0' }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
+            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Pencarian</label>
+            <input
+              type="text"
+              placeholder="Cari dokter, pasien, tindakan..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', backgroundColor: '#f8fafc', width: '100%' }}
+            />
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Rentang Tanggal</label>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -415,9 +442,9 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
             )}
           </button>
 
-          {(startDate !== today || endDate !== today) && (
+          {(startDate !== today || endDate !== today || searchKeyword !== '') && (
             <button
-              onClick={() => { setStartDate(today); setEndDate(today); setPage(1); }}
+              onClick={() => { setStartDate(today); setEndDate(today); setSearchKeyword(''); setPage(1); }}
               style={{ padding: '10px 15px', fontSize: '0.85rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
             >
               Reset
@@ -435,11 +462,11 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
             <p>{error}</p>
             <button onClick={loadData} style={{ marginTop: '1rem', color: 'var(--accent)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Coba Lagi</button>
           </div>
-        ) : registrations.length === 0 ? (
+        ) : filteredRegistrations.length === 0 ? (
           <div className="card" style={{ padding: '5rem', textAlign: 'center', backgroundColor: 'white', color: '#94a3b8' }}>
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 1.5rem', opacity: 0.5 }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>Belum Ada Jadwal</h3>
-            <p>Belum ada pendaftaran operasi yang tercatat untuk kriteria filter ini.</p>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>Tidak Ada Data</h3>
+            <p>Tidak ada jadwal operasi yang cocok dengan pencarian atau filter saat ini.</p>
           </div>
         ) : (
           <>
@@ -462,7 +489,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                     </tr>
                   </thead>
                   <tbody>
-                    {registrations.map((reg, index) => {
+                    {filteredRegistrations.map((reg, index) => {
                       const isUnassigned = !reg.ruang_operasi || !reg.jam_rencana_operasi;
                       return (
                         <tr key={reg.id} style={{
