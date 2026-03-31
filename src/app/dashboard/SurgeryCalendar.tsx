@@ -32,6 +32,7 @@ interface Registration {
   penjamin: string;
   kelas: string;
   ruang_operasi?: string;
+  jenis_umur?: string;
 }
 
 export default function SurgeryCalendar() {
