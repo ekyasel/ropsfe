@@ -18,6 +18,7 @@ interface RegistrationData {
   nama_pasien: string;
   no_rekam_medis: string;
   umur_tahun: string;
+  jenis_umur?: string;
   jenis_kelamin: string;
   tanggal_rencana_operasi: string;
   jam_rencana_operasi: string;
@@ -182,8 +183,17 @@ export default function AddRegistrationModal({ isOpen, onClose, onSuccess, initi
                     <input name="nama_pasien" type="text" required placeholder="Nama Lengkap" defaultValue={initialData?.nama_pasien} />
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
-                    <label>UMUR (THN)</label>
-                    <input name="umur_tahun" type="number" required placeholder="Thn" defaultValue={initialData?.umur_tahun} />
+                    <label>UMUR</label>
+                    <input name="umur_tahun" type="number" required placeholder="Umur" defaultValue={initialData?.umur_tahun} />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>SATUAN</label>
+                    <select name="jenis_umur" required defaultValue={initialData?.jenis_umur || 'Tahun'}>
+                      <option value="Hari">Hari</option>
+                      <option value="Minggu">Minggu</option>
+                      <option value="Bulan">Bulan</option>
+                      <option value="Tahun">Tahun</option>
+                    </select>
                   </div>
                 </div>
 
