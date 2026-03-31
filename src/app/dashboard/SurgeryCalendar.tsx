@@ -319,7 +319,7 @@ export default function SurgeryCalendar() {
                               <span style={{ fontSize: timelineZoom < 0.7 ? '0.55rem' : '0.65rem', fontWeight: 800, color: '#64748b' }}>{event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}</span>
                             </div>
                             <div style={{ fontWeight: 800, fontSize: isFullScreen ? (timelineZoom < 0.7 ? '0.75rem' : '0.9rem') : '0.85rem', color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                              {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/{event.umur_tahun}th</span>
+                              {event.nama_pasien} <span style={{ fontWeight: 400, color: '#64748b' }}>/ {event.umur_tahun} {event.jenis_umur ? event.jenis_umur : 'Thn'}</span>
                             </div>
                             {timelineZoom >= 0.7 && (
                               <>
@@ -443,7 +443,7 @@ export default function SurgeryCalendar() {
     const tableData = dayEvents.map((event, index) => [
       index + 1,
       `${event.jam_rencana_operasi ? event.jam_rencana_operasi.substring(0, 5) : '-'}${event.jenis_operasi === 'CITO' ? '\n(CITO)' : ''}`,
-      `${event.nama_pasien}\nRM: ${event.no_rekam_medis}\n${event.umur_tahun}th / ${event.jenis_kelamin}`,
+      `${event.nama_pasien}\nRM: ${event.no_rekam_medis}\n${event.umur_tahun} ${event.jenis_umur ? event.jenis_umur : 'Thn'} / ${event.jenis_kelamin}`,
       `${event.ruang_operasi || 'BELUM TERALOKASI'}\n${event.kelas}`,
       `${event.rencana_tindakan}\nDx: ${event.diagnosis}`,
       `${event.dokter_operator}\nAnes: ${event.dokter_anestesi || '-'}`,
@@ -570,7 +570,7 @@ export default function SurgeryCalendar() {
     const data = [
       { label: 'No. Rekam Medis', value: selectedEvent.no_rekam_medis },
       { label: 'Nama Pasien', value: selectedEvent.nama_pasien },
-      { label: 'Umur / JK', value: `${selectedEvent.umur_tahun} th / ${selectedEvent.jenis_kelamin}` },
+      { label: 'Umur / JK', value: `${selectedEvent.umur_tahun} ${selectedEvent.jenis_umur ? selectedEvent.jenis_umur : 'Thn'} / ${selectedEvent.jenis_kelamin}` },
       { label: 'Nomor Telp Pasien', value: selectedEvent.nomor_telp_2 ? `${selectedEvent.nomor_telp_1} / ${selectedEvent.nomor_telp_2}` : selectedEvent.nomor_telp_1 },
       { label: 'Diagnosis', value: selectedEvent.diagnosis },
       { label: 'Rencana Tindakan', value: selectedEvent.rencana_tindakan },
