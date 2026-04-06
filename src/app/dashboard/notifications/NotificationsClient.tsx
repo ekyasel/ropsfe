@@ -73,7 +73,6 @@ export default function NotificationsClient() {
   const [expandedId, setExpandedId]       = useState<string | null>(null);
   
   // Resend feature states
-  const [resendDate, setResendDate]       = useState(todayWIB());
   const [resending, setResending]         = useState(false);
 
   // Room status states
@@ -203,10 +202,41 @@ export default function NotificationsClient() {
   };
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
-  useEffect(() => { fetchRoomStatus(resendDate); }, [resendDate, fetchRoomStatus]);
+  useEffect(() => { fetchRoomStatus(date); }, [date, fetchRoomStatus]);
   useEffect(() => { fetchFonnteToken(); }, [fetchFonnteToken]);
 
   const handleDateChange = (val: string) => { setDate(val); setPage(1); };
+
+  const showFailureReason = (room: RoomStatus) => {
+    if (room.status === 'failed' || room.status === 'error' || room.status === 'send_failed') {
+      let detailReason = room.failure_reason;
+
+      // Cari alasan spesifik di log WhatsApp berdasarkan ruangan
+      for (const log of logs) {
+        try {
+          const parsed = JSON.parse(log.details);
+          if (parsed && Array.isArray(parsed.rooms)) {
+            const roomLog = parsed.rooms.find((r: { room: string; wa_response?: { response?: { reason?: string }, reason?: string }, reason?: string }) => r.room === room.room);
+            const logReason = roomLog?.wa_response?.response?.reason || roomLog?.wa_response?.reason || roomLog?.reason;
+            if (logReason) {
+              detailReason = logReason;
+              break;
+            }
+          }
+        } catch {
+          // Abaikan jika bukan JSON / format tidak sesuai
+        }
+      }
+
+      Swal.fire({
+        title: 'Detail Kegagalan',
+        text: detailReason || 'Tidak ada informasi detail kegagalan.',
+        icon: 'error',
+        confirmButtonColor: '#0891b2'
+      });
+    }
+  };
+
 
   const handleResend = async (roomName?: string) => {
     const result = await Swal.fire({
@@ -228,7 +258,7 @@ export default function NotificationsClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          targetDate: fetchedTargetDate ?? resendDate, // Use the surgery date from status API
+          targetDate: fetchedTargetDate ?? date, // Use the surgery date from status API
           room: roomName ?? 'all'
         })
       });
@@ -246,11 +276,8 @@ export default function NotificationsClient() {
           icon: 'success'
         });
         // Refresh statuses to show "running" or new status
-        fetchRoomStatus(resendDate);
-        // If the date being resent is the same as the filtered date, refresh logs
-        if (resendDate === date) {
-          fetchLogs();
-        }
+        fetchRoomStatus(date);
+        fetchLogs();
       }
     } catch {
       Swal.fire({
@@ -267,7 +294,7 @@ export default function NotificationsClient() {
     (hasUpdates && s === "need_resend") ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
     hasUpdates ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
     s === "success" || s === "sent" ? { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" } :
-    s === "failed" || s === "error"  ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
+    s === "failed" || s === "error" || s === "send_failed" ? { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" } :
     s === "skipped" ? { color: "#64748b", bg: "#f1f5f9", border: "#e2e8f0" } :
     s === "need_resend" ? { color: "#d97706", bg: "#fffbeb", border: "#fde68a" } :
                       { color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" };
@@ -276,7 +303,7 @@ export default function NotificationsClient() {
     (hasUpdates && s === "need_resend") ? "Perlu Kirim" :
     hasUpdates ? "Ada Data Baru" :
     s === "success" || s === "sent" ? "Sukses" : 
-    s === "failed" || s === "error" ? "Gagal" : 
+    s === "failed" || s === "error" || s === "send_failed" ? "Gagal" : 
     s === "skipped" ? "Lewati" :
     s === "need_resend" ? "Perlu Kirim" :
     s;
@@ -313,13 +340,13 @@ export default function NotificationsClient() {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#475569" }}>Pilih Tanggal</label>
             <input
-              type="date" value={resendDate}
-              onChange={(e) => setResendDate(e.target.value)}
+              type="date" value={date}
+              onChange={(e) => handleDateChange(e.target.value)}
               style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "8px 12px", fontSize: "0.875rem", color: "#0f172a", outline: "none", minWidth: "200px" }}
             />
           </div>
           <button 
-            onClick={() => fetchRoomStatus(resendDate)}
+            onClick={() => { fetchRoomStatus(date); fetchLogs(); }}
             style={{ height: "40px", padding: "8px 15px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "white", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem" }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -368,7 +395,10 @@ export default function NotificationsClient() {
                       <td style={{ padding: "12px 15px", fontWeight: 700, color: "#0f172a" }}>{room.room}</td>
                       <td style={{ padding: "12px 15px", color: "#475569" }}>{room.surgery_count}</td>
                       <td style={{ padding: "12px 15px" }}>
-                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.border}`, padding: "2px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                        <span 
+                          onClick={() => showFailureReason(room)}
+                          style={{ cursor: (room.status === 'failed' || room.status === 'error' || room.status === 'send_failed') ? "pointer" : "default", fontSize: "0.7rem", fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.border}`, padding: "2px 8px", borderRadius: "20px", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
+                        >
                           {label(room.status, room.has_updates)}
                         </span>
                       </td>
@@ -377,7 +407,7 @@ export default function NotificationsClient() {
                         {(room.has_updates && room.status === 'sent') ? "Terdapat data baru dan perlu re-send manual" : (room.failure_reason || "-")}
                       </td>
                       <td style={{ padding: "8px 15px" }}>
-                        {(room.status === 'failed' || room.status === 'skipped' || room.status === 'need_resend' || room.has_updates) && (
+                        {(room.status === 'failed' || room.status === 'error' || room.status === 'send_failed' || room.status === 'skipped' || room.status === 'need_resend' || room.has_updates) && (
                           <button 
                             onClick={() => handleResend(room.room)}
                             disabled={resending}
@@ -456,131 +486,130 @@ export default function NotificationsClient() {
         </section>
       )}
 
-      <div style={{ margin: "2.5rem 0 1rem", borderTop: "1px solid #e2e8f0" }}></div>
-
-      {/* Filter Section */}
-      <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", marginBottom: "1rem" }}>Riwayat Log Pengiriman Notifikasi Oleh System</h2>
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1rem 1.25rem", boxShadow: "0 1px 4px rgba(0,0,0,.04)" }}>
-        <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          Filter Tanggal
-        </label>
-        <input
-          type="date" value={date}
-          onChange={(e) => handleDateChange(e.target.value)}
-          style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "7px 12px", fontSize: "0.875rem", color: "#0f172a", outline: "none" }}
-        />
-        <button onClick={fetchLogs} className="button-primary"
-          style={{ padding: "7px 18px", fontSize: "0.85rem", borderRadius: "8px", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-          </svg>
-          Segarkan
-        </button>
-        {pagination && <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "#94a3b8" }}>{pagination.total} log ditemukan</span>}
-      </div>
-
-      {/* Content */}
-      <div style={{ marginTop: "1.25rem" }}>
-        {loading && (
-          <div style={{ textAlign: "center", padding: "3rem", color: "#94a3b8" }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ display: "block", margin: "0 auto 0.75rem", animation: "spin 1s linear infinite" }}>
-              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-            </svg>
-            Memuat data...
+      {/* Logs Section */}
+      <section style={{ marginTop: "2rem", background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1.5rem", boxShadow: "0 1px 4px rgba(0,0,0,.04)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem", paddingBottom: "1.25rem", borderBottom: "1px solid #f1f5f9" }}>
+          <div>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>Riwayat Log Pengiriman Notifikasi Oleh System</h2>
+            <div style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Tanggal: <span style={{ fontWeight: 600, color: "#0f172a" }}>{date}</span>
+            </div>
           </div>
-        )}
-
-        {error && !loading && (
-          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "1rem 1.25rem", color: "#dc2626", fontSize: "0.875rem" }}>
-            ⚠ {error}
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            {pagination && <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{pagination.total} log ditemukan</span>}
+            <button onClick={fetchLogs}
+              style={{ padding: "7px 15px", fontSize: "0.85rem", borderRadius: "8px", display: "flex", alignItems: "center", gap: "0.4rem", background: "white", color: "#475569", border: "1px solid #e2e8f0", cursor: "pointer", fontWeight: 600 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+              Segarkan
+            </button>
           </div>
-        )}
+        </div>
 
-        {!loading && !error && logs.length === 0 && (
-          <div style={{ textAlign: "center", padding: "3.5rem", color: "#94a3b8" }}>
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ display: "block", margin: "0 auto 1rem", opacity: 0.35 }}>
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <p style={{ fontWeight: 600, marginBottom: "0.2rem" }}>Tidak ada log</p>
-            <p style={{ fontSize: "0.82rem" }}>Tidak ditemukan log untuk tanggal ini.</p>
-          </div>
-        )}
+        {/* Content */}
+        <div>
+          {loading && (
+            <div style={{ textAlign: "center", padding: "3rem", color: "#94a3b8" }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ display: "block", margin: "0 auto 0.75rem", animation: "spin 1s linear infinite" }}>
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              Memuat data...
+            </div>
+          )}
 
-        {!loading && logs.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {logs.map((log) => {
-              const s = sc(log.status);
-              const isExp = expandedId === log.id;
-              let parsed: Record<string, unknown> | null = null;
-              try { parsed = JSON.parse(log.details); } catch {}
+          {error && !loading && (
+            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "1rem 1.25rem", color: "#dc2626", fontSize: "0.875rem" }}>
+              ⚠ {error}
+            </div>
+          )}
 
-              return (
-                <div key={log.id} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1rem 1.25rem", boxShadow: "0 1px 4px rgba(0,0,0,.04)" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: s.color, flexShrink: 0, marginTop: "6px" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
-                        <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a" }}>{log.job_name}</span>
-                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.border}`, padding: "2px 9px", borderRadius: "20px" }}>
-                          {label(log.status)}
-                        </span>
+          {!loading && !error && logs.length === 0 && (
+            <div style={{ textAlign: "center", padding: "3.5rem", color: "#94a3b8" }}>
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ display: "block", margin: "0 auto 1rem", opacity: 0.35 }}>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <p style={{ fontWeight: 600, marginBottom: "0.2rem" }}>Tidak ada log</p>
+              <p style={{ fontSize: "0.82rem" }}>Tidak ditemukan log untuk tanggal ini.</p>
+            </div>
+          )}
+
+          {!loading && logs.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {logs.map((log) => {
+                const s = sc(log.status);
+                const isExp = expandedId === log.id;
+                let parsed: Record<string, unknown> | null = null;
+                try { parsed = JSON.parse(log.details); } catch {}
+
+                return (
+                  <div key={log.id} style={{ borderBottom: "1px solid #f1f5f9", padding: "1.25rem 0" }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: s.color, flexShrink: 0, marginTop: "6px" }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
+                          <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a" }}>{log.job_name}</span>
+                          <span style={{ fontSize: "0.7rem", fontWeight: 700, color: s.color, background: s.bg, border: `1px solid ${s.border}`, padding: "2px 9px", borderRadius: "20px" }}>
+                            {label(log.status)}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.84rem", color: "#475569", marginBottom: "0.5rem", lineHeight: 1.5 }}>{log.summary}</p>
+                        <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap", fontSize: "0.75rem", color: "#94a3b8" }}>
+                          <span>▶ {toLocalDateString(log.started_at)}</span>
+                          <span>⏹ {toLocalDateString(log.finished_at)}</span>
+                        </div>
                       </div>
-                      <p style={{ fontSize: "0.84rem", color: "#475569", marginBottom: "0.5rem", lineHeight: 1.5 }}>{log.summary}</p>
-                      <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap", fontSize: "0.75rem", color: "#94a3b8" }}>
-                        <span>▶ {toLocalDateString(log.started_at)}</span>
-                        <span>⏹ {toLocalDateString(log.finished_at)}</span>
-                      </div>
+                      <button onClick={() => setExpandedId(isExp ? null : log.id)}
+                        style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "5px 10px", cursor: "pointer", fontSize: "0.75rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.3rem", flexShrink: 0 }}>
+                        {isExp ? "Tutup" : "Detail"}
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ transform: isExp ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </button>
                     </div>
-                    <button onClick={() => setExpandedId(isExp ? null : log.id)}
-                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "5px 10px", cursor: "pointer", fontSize: "0.75rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.3rem", flexShrink: 0 }}>
-                      {isExp ? "Tutup" : "Detail"}
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                        style={{ transform: isExp ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </button>
+
+                    {isExp && (
+                      <div style={{ marginTop: "1rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem 1rem" }}>
+                        <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>Detail</div>
+                        <pre style={{ fontSize: "0.78rem", color: "#334155", whiteSpace: "pre-wrap", wordBreak: "break-all", margin: 0, fontFamily: "monospace", lineHeight: 1.6 }}>
+                          {parsed ? JSON.stringify(parsed, null, 2) : log.details}
+                        </pre>
+                        <div style={{ marginTop: "0.5rem", fontSize: "0.7rem", color: "#cbd5e1" }}>ID: {log.id}</div>
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+            </div>
+          )}
 
-                  {isExp && (
-                    <div style={{ marginTop: "0.85rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "0.85rem 1rem" }}>
-                      <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}>Detail</div>
-                      <pre style={{ fontSize: "0.78rem", color: "#334155", whiteSpace: "pre-wrap", wordBreak: "break-all", margin: 0, fontFamily: "monospace", lineHeight: 1.6 }}>
-                        {parsed ? JSON.stringify(parsed, null, 2) : log.details}
-                      </pre>
-                      <div style={{ marginTop: "0.5rem", fontSize: "0.7rem", color: "#cbd5e1" }}>ID: {log.id}</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {pagination && pagination.totalPages > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
-            <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
-              style={{ padding: "7px 14px", borderRadius: "8px", fontSize: "0.82rem", border: "1px solid #e2e8f0", background: "white", cursor: page <= 1 ? "not-allowed" : "pointer", color: page <= 1 ? "#cbd5e1" : "#475569" }}>
-              ← Sebelumnya
-            </button>
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(p => (
-              <button key={p} onClick={() => setPage(p)}
-                style={{ padding: "7px 12px", borderRadius: "8px", fontSize: "0.82rem", border: p === page ? "1px solid #0891b2" : "1px solid #e2e8f0", background: p === page ? "#ecfeff" : "white", color: p === page ? "#0891b2" : "#475569", fontWeight: p === page ? 700 : 400, cursor: "pointer" }}>
-                {p}
+          {/* Pagination */}
+          {pagination && pagination.totalPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "1.5rem", paddingTop: "1rem" }}>
+              <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+                style={{ padding: "7px 14px", borderRadius: "8px", fontSize: "0.82rem", border: "1px solid #e2e8f0", background: "white", cursor: page <= 1 ? "not-allowed" : "pointer", color: page <= 1 ? "#cbd5e1" : "#475569" }}>
+                ← Sebelumnya
               </button>
-            ))}
-            <button disabled={page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}
-              style={{ padding: "7px 14px", borderRadius: "8px", fontSize: "0.82rem", border: "1px solid #e2e8f0", background: "white", cursor: page >= pagination.totalPages ? "not-allowed" : "pointer", color: page >= pagination.totalPages ? "#cbd5e1" : "#475569" }}>
-              Berikutnya →
-            </button>
-          </div>
-        )}
-      </div>
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setPage(p)}
+                  style={{ padding: "7px 12px", borderRadius: "8px", fontSize: "0.82rem", border: p === page ? "1px solid #0891b2" : "1px solid #e2e8f0", background: p === page ? "#ecfeff" : "white", color: p === page ? "#0891b2" : "#475569", fontWeight: p === page ? 700 : 400, cursor: "pointer" }}>
+                  {p}
+                </button>
+              ))}
+              <button disabled={page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}
+                style={{ padding: "7px 14px", borderRadius: "8px", fontSize: "0.82rem", border: "1px solid #e2e8f0", background: "white", cursor: page >= pagination.totalPages ? "not-allowed" : "pointer", color: page >= pagination.totalPages ? "#cbd5e1" : "#475569" }}>
+                Berikutnya →
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
