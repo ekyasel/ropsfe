@@ -485,7 +485,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                       <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit / Ruang</th>
                       <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jenis / Penjamin</th>
                       <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tindakan</th>
-                      {userRole !== 'Farmasi' && <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Aksi</th>}
+                      {userRole !== 'Farmasi'  && userRole !== 'Admin' && <th style={{ padding: '16px 20px', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Aksi</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -613,7 +613,7 @@ export default function RegistrationsTable({ refreshKey }: RegistrationsTablePro
                               Dx: {reg.diagnosis}
                             </div>
                           </td>
-                          {userRole !== 'Farmasi' && (
+                          {userRole !== 'Farmasi' && userRole !== 'Admin' && (
                             <td style={{ padding: '18px 20px', textAlign: 'center' }}>
                               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                                 <button

@@ -340,7 +340,7 @@ export default function SurgeryCalendar() {
                                 </div>
                                 <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
                                   <span>Anestesi: {event.dokter_anestesi || '-'}</span>
-                                  <span style={{ color: '#0f172a' }}>{event.kelas}</span>
+                                  <span style={{ color: '#0f172a' }}>{event.penjamin}</span>
                                 </div>
                               </div>
                             )}
